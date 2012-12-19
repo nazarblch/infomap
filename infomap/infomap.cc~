@@ -11,7 +11,7 @@ unsigned stou(char *s){
 
 void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent);
 void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent,int Ntrials);
-void printTree(string s,multimap<double,treeNode,greater<double> >::iterator it_tM,ofstream *outfile,bool flip);
+
 
 
 // Call: trade <seed> <Ntries>
@@ -61,14 +61,18 @@ int main(int argc,char *argv[]){
   greedy->print_partition_log();
   
   // Order modules by size
-  MapTree mapTree(greedy, G, node, networkName); 
+  MapTree mapTree(greedy, G, networkName); 
   
   multimap<double,treeNode,greater<double> >& treeMap = mapTree.treeMap;
   multimap<double,pair<int,int>,greater<double> >& sortedLinks = mapTree.sortedLinks;
   
   cout << "done>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
   
-
+  mapTree.print_partition_in_format_moduleRankSizeName();
+  mapTree.print_partition_in_format_Pajek_clu();
+  mapTree.print_map_in_Pajek_net_format();
+  mapTree.print_size_of_modules_in_Pajek_vec_format();
+  mapTree.print_map_in_map_format();
   
   delete [] G.get_nodeNames();
   for(int i=0;i<greedy->Nnode;i++){
@@ -332,5 +336,7 @@ void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent
   greedy->level(node,true);
   
 }
+
+
 
 

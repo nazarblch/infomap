@@ -51,6 +51,23 @@ void printTree(string s,multimap<double,treeNode,greater<double> >::iterator it_
   }  
 }
 
+void printCommFromTree(multimap<double,treeNode,greater<double> >::iterator it_tM, ofstream *outfile) {
+  
+  multimap<double,treeNode,greater<double> >::iterator it;
+  if(it_tM->second.nextLevel.size() > 0){
+    
+    for(it = it_tM->second.nextLevel.begin(); it != it_tM->second.nextLevel.end(); it++){
+      printCommFromTree(it, outfile);
+    }
+  } else {
+    for(multimap<double,pair<int,string>,greater<double> >::iterator mem = it_tM->second.members.begin(); mem != it_tM->second.members.end(); mem++) {
+        (*outfile) << mem->second.second << " ";
+    } 
+    (*outfile) << endl;
+  }  
+}
+
+
 
 class MapTree {
 public:  
@@ -68,13 +85,13 @@ public:
   Node** node;
   double totalDegree;
   
-  MapTree (GreedyBase* greedy, Graph& G, Node** &node, string networkName) {
+  MapTree (GreedyBase* greedy, Graph& G, string networkName) {
   
     Nmod = greedy->Nnode;
     this->networkName.assign(networkName);
     this->greedy = greedy;
     this->G = G;
-    this->node = node;
+    this->node = greedy->node;
     this->totalDegree = G.get_totalDegree();
     
     multimap<double,treeNode,greater<double> >::iterator it_tM;
@@ -187,6 +204,20 @@ public:
     outfile << "*Links " << sortedLinks.size() << endl;
     for(multimap<double,pair<int,int>,greater<double> >::iterator it = sortedLinks.begin();it != sortedLinks.end();it++)   
       outfile << it->second.first << " " << it->second.second << " " << 1.0*it->first << endl;
+    outfile.close();
+    
+  }
+  
+  
+  void print_map_in_communityPerLine_format() {
+    oss.str("");
+    oss << networkName << ".coms";
+    outfile.open(oss.str().c_str());
+ 
+    for(multimap<double,treeNode,greater<double> >::iterator it = treeMap.begin(); it != treeMap.end(); it++) {
+      printCommFromTree(it, &outfile);
+    }
+   
     outfile.close();
     
   }
