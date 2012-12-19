@@ -1,0 +1,222 @@
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include "MersenneTwister.h"
+#include "GreedyBase.h" 
+#include "Greedy.h" 
+#include "Node.h" 
+#include "GraphLoader.h"
+#define PI 3.14159265
+using namespace std;
+
+unsigned stou(char *s);
+
+template <class T>
+inline std::string to_string (const T& t){
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+}
+
+void printTree(string s,multimap<double,treeNode,greater<double> >::iterator it_tM,ofstream *outfile,bool flip){
+  
+  multimap<double,treeNode,greater<double> >::iterator it;
+  if(it_tM->second.nextLevel.size() > 0){
+    int i=1;
+    for(it = it_tM->second.nextLevel.begin(); it != it_tM->second.nextLevel.end(); it++){
+      string cpy_s(s + to_string(i) + ":");
+      printTree(cpy_s,it,outfile,flip);
+      i++;
+    }
+  }
+  else{
+    int i = 1;
+    for(multimap<double,pair<int,string>,greater<double> >::iterator mem = it_tM->second.members.begin(); mem != it_tM->second.members.end(); mem++){
+      if(flip){
+        string cpy_s(s + to_string(i) + " \"" + mem->second.second + "\" " + to_string(mem->first));
+        (*outfile) << cpy_s << endl;
+      }
+      else{
+        string cpy_s(s + to_string(i) + " " + to_string(mem->first) + " \"" + mem->second.second + "\"");
+        (*outfile) << cpy_s << endl;
+      }
+      i++;
+    } 
+  }  
+}
+
+
+class MapTree {
+public:  
+  
+  multimap<double,treeNode,greater<double> > treeMap;
+  multimap<double,pair<int,int>,greater<double> > sortedLinks;
+  int Nmod;
+  
+  string networkName;
+  ostringstream oss;
+  ofstream outfile;
+  
+  GreedyBase* greedy;
+  Graph G;
+  Node** node;
+  double totalDegree;
+  
+  MapTree (GreedyBase* greedy, Graph& G, Node** &node, string networkName) {
+  
+    Nmod = greedy->Nnode;
+    this->networkName.assign(networkName);
+    this->greedy = greedy;
+    this->G = G;
+    this->node = node;
+    this->totalDegree = G.get_totalDegree();
+    
+    multimap<double,treeNode,greater<double> >::iterator it_tM;
+ 
+    for(int i = 0; i < greedy->Nnode; i++){
+      
+      treeNode tmp_tN = G.make_treeNode(node[i]);
+      double rank = node[i]->degree/G.get_totalDegree();
+      
+      it_tM = treeMap.insert(make_pair(rank, tmp_tN));
+    }
+    
+    for(int i=0;i<Nmod;i++){
+      int Nlinks = node[i]->links.size();
+      for(int j=0;j<Nlinks;j++){
+        if(i <= node[i]->links[j].first)
+          sortedLinks.insert(make_pair(node[i]->links[j].second/G.get_totalDegree(), make_pair(i+1,node[i]->links[j].first+1)));
+      }
+    }
+  
+  }
+  
+  
+  void print_partition_in_format_moduleRankSizeName() {
+  
+    oss.str("");
+    oss << networkName << ".tree";  
+    outfile.open(oss.str().c_str());
+    outfile << "# Code length " << greedy->codeLength << " in " << Nmod << " modules." << endl;
+    int k = 1;
+    
+    for(multimap<double,treeNode,greater<double> >::iterator it = treeMap.begin(); it != treeMap.end(); it++){
+      string s;
+      s.append(to_string(k));
+      s.append(":");
+      printTree(s, it, &outfile, false);
+      k++;
+    }
+    
+    outfile.close();
+  }
+  
+  void print_partition_in_format_Pajek_clu(){
+    vector<int> clusterVec(G.get_N());
+    int clusterNr = 0;  
+    for(multimap<double,treeNode,greater<double> >::iterator mod = treeMap.begin(); mod != treeMap.end(); mod++){
+	  for(multimap<double,pair<int,string>,greater<double> >::iterator mem = mod->second.members.begin(); mem != mod->second.members.end(); mem++){
+	    clusterVec[mem->second.first] = clusterNr;
+	  }
+	  clusterNr++;
+    }
+    oss.str("");
+    oss << networkName << ".clu";
+    outfile.open(oss.str().c_str());
+    outfile << "*Vertices " << G.get_N() << "\x0D\x0A";
+    for(int i=0;i<G.get_N();i++)
+      outfile << clusterVec[i]+1 << "\x0D\x0A";
+    outfile.close();
+  }
+  
+  void print_map_in_Pajek_net_format() {
+    oss.str("");
+    oss << networkName << "_map.net";
+    outfile.open(oss.str().c_str());
+    outfile << "*Vertices " << Nmod << "\x0D\x0A";
+    for(int i=0;i<Nmod;i++)
+      outfile << i+1 << " \"" << i+1 << "\"" << "\x0D\x0A";
+    outfile << "*Edges " << sortedLinks.size() << "\x0D\x0A";
+    for(multimap<double,pair<int,int>,greater<double> >::iterator it = sortedLinks.begin();it != sortedLinks.end();it++)   
+      outfile << "  " << it->second.first << " " << it->second.second << " " << 1.0*it->first/totalDegree << "\x0D\x0A";
+    outfile.close();
+  }
+    
+  void print_size_of_modules_in_Pajek_vec_format() {
+    oss.str("");
+    oss << networkName << "_map.vec";
+    outfile.open(oss.str().c_str());
+    outfile << "*Vertices " << Nmod << "\x0D\x0A";
+    for(int i=0;i<Nmod;i++)
+      outfile << 1.0*node[i]->degree/G.get_totalDegree() << "\x0D\x0A";
+    outfile.close();
+    
+  }
+  
+  void print_map_in_map_format() {
+    oss.str("");
+    oss << networkName << ".map";
+    outfile.open(oss.str().c_str());
+    outfile << "# modules: " << Nmod << endl;
+    outfile << "# modulelinks: " << sortedLinks.size() << endl;
+    outfile << "# nodes: " << G.get_N() << endl;
+    outfile << "# links: " << G.get_M() << endl;
+    outfile << "# codelength: " << greedy->codeLength << endl;
+    outfile << "*Undirected" << endl;
+    outfile << "*Modules " << Nmod << endl;
+    k = 0;
+    for(multimap<double,treeNode,greater<double> >::iterator it = treeMap.begin(); it != treeMap.end(); it++){
+      outfile << k+1 << " \"" << it->second.members.begin()->second.second << "\" " << it->first << " " << node[k]->exit/totalDegree << endl;
+      k++;
+    }
+    outfile << "*Nodes " << G.get_N() << endl;
+    k = 1;
+    for(multimap<double,treeNode,greater<double> >::iterator it = treeMap.begin(); it != treeMap.end(); it++){
+      string s;
+      s.append(to_string(k));
+      s.append(":");
+      printTree(s,it,&outfile,true);
+      k++;
+    }
+    outfile << "*Links " << sortedLinks.size() << endl;
+    for(multimap<double,pair<int,int>,greater<double> >::iterator it = sortedLinks.begin();it != sortedLinks.end();it++)   
+      outfile << it->second.first << " " << it->second.second << " " << 1.0*it->first << endl;
+    outfile.close();
+    
+  }
+  
+};
+
+
+void cpyNode(Node *newNode,Node *oldNode){
+  
+  newNode->index = oldNode->index;
+  newNode->exit = oldNode->exit;
+  newNode->degree = oldNode->degree;
+
+  int Nmembers = oldNode->members.size();
+  newNode->members = vector<int>(Nmembers);
+  for(int i=0;i<Nmembers;i++)
+    newNode->members[i] = oldNode->members[i];
+  
+  int Nlinks = oldNode->links.size();
+  newNode->links = vector<pair<int,double> >(Nlinks);
+  for(int i=0;i<Nlinks;i++){
+    newNode->links[i].first = oldNode->links[i].first;
+    newNode->links[i].second = oldNode->links[i].second;
+  }
+
+}
+
+
+  
+
+
+
+
