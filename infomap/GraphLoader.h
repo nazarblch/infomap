@@ -8,6 +8,14 @@
 
 using namespace std;
 
+template <class T>
+inline std::string to_string (const T& t){
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+}
+
+
 class treeNode{
  public:
   multimap<double,pair<int,string>,greater<double> > members;
@@ -34,6 +42,7 @@ public:
   Graph(): Nnode(0), Nlinks(0), NdoubleLinks(0), NselfLinks(0), totalDegree(0.0) {}
   
   void read_pajek_net(char* input_net_path);
+  void read_edges_net(char* input_net_path);
   
   void init_nodes();
   

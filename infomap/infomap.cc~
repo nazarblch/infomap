@@ -9,6 +9,19 @@ unsigned stou(char *s){
   return strtoul(s,(char **)NULL,10);
 }
 
+std::vector<string> split(const string& inputString, const char seperator) {
+    std::vector<string> string_parts;
+    string::size_type substring_begin = 0, substring_end = 0;
+    while ((substring_end = inputString.find(seperator, substring_end)) != string::npos) {
+      string substring(inputString.substr(substring_begin, substring_end - substring_begin));
+      string_parts.push_back(substring);
+      substring_begin = ++substring_end;
+    }
+    string_parts.push_back(inputString.substr(substring_begin, substring_end - substring_begin));
+    return string_parts;
+}
+
+void print_nmi(string argv_0, string networkName);
 void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent);
 void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent,int Ntrials);
 
@@ -21,7 +34,7 @@ int main(int argc,char *argv[]){
     cout << "Call: ./infomap <seed> <network.net> <# attempts>" << endl;
     exit(-1);
   }
-  
+   
   int Ntrials = atoi(argv[3]);  // Set number of partition attempts
   string infile = string(argv[2]);
   string networkName(infile.begin(),infile.begin() + infile.find(".net"));
@@ -29,7 +42,7 @@ int main(int argc,char *argv[]){
   MTRand *R = new MTRand(stou(argv[1]));
  
   Graph G;
-  G.read_pajek_net(argv[2]);
+  G.read_edges_net(argv[2]);
     
   G.init_nodes();
   G.delele_links();
@@ -73,6 +86,7 @@ int main(int argc,char *argv[]){
   mapTree.print_map_in_Pajek_net_format();
   mapTree.print_size_of_modules_in_Pajek_vec_format();
   mapTree.print_map_in_map_format();
+  mapTree.print_map_in_communityPerLine_format();
   
   delete [] G.get_nodeNames();
   for(int i=0;i<greedy->Nnode;i++){
@@ -82,82 +96,77 @@ int main(int argc,char *argv[]){
   delete greedy;
   delete R;
   
+  print_nmi(string(argv[0]), networkName);
 }
 
-void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
+void print_nmi(string argv_0, string networkName) {
+  string mutual_path = "";
+  vector<string> mutual_path_parts = split(string(argv_0), '/');
+  for(int i = 0; i < mutual_path_parts.size() - 3; i++) {
+    mutual_path += mutual_path_parts[i] + '/';
+  }
+  mutual_path += "mutual3/mutual";
+  
+  string ground_coms(networkName.begin(), networkName.begin() + networkName.find_last_of('/'));
+  ground_coms += "/c.dat";
+  string res_coms = networkName + ".coms";
+  
+  execl(mutual_path.c_str(), mutual_path.c_str(), ground_coms.c_str(), res_coms.c_str(), (char *) 0);
+}
+
+bool is_Partition_the_partition_phase(int iteration) {
+  return (iteration > 0) && (iteration % 2 == 0);
+}
+
+void tmp_func() {
+}
+
+void partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
   
   int Nnode = greedy->Nnode;
-  Node **cpy_node = new Node*[Nnode];
-  for(int i=0;i<Nnode;i++){
-    cpy_node[i] = new Node();
-    cpyNode(cpy_node[i],(*node)[i]);
-  }
-  
+  Node **cpy_node = greedy->copy_nodes(node, Nnode);
   int iteration = 0;
   double outer_oldCodeLength;
+  
   do{
     outer_oldCodeLength = greedy->codeLength;
     
-    if((iteration > 0) && (iteration % 2 == 0) && (greedy->Nnode > 1)){  // Partition the partition
-      
-      
+    if(is_Partition_the_partition_phase(iteration) && (greedy->Nnode > 1)){  
+        
       if(!silent)
         cout << "Iteration " << iteration+1 << ", moving " << flush;
       
-      Node **rpt_node = new Node*[Nnode];
-      for(int i=0;i<Nnode;i++){
-        rpt_node[i] = new Node();
-        cpyNode(rpt_node[i],cpy_node[i]);
-      }
+      Node **rpt_node = greedy->copy_nodes(&cpy_node, Nnode);
+      
       vector<int> subMoveTo(Nnode);
       vector<int> moveTo(Nnode);
       int subModIndex = 0;
       
-      for(int i=0;i<greedy->Nnode;i++){
+      for(int i = 0; i < greedy->Nnode; i++){
         
         int sub_Nnode = (*node)[i]->members.size();
         
-        if(sub_Nnode > 1){
+        if(sub_Nnode > 1) {
           
           Node **sub_node = new Node*[sub_Nnode]; 
-          set<int> sub_mem;
-          for(int j=0;j<sub_Nnode;j++)
-            sub_mem.insert((*node)[i]->members[j]);
-          set<int>::iterator it_mem = sub_mem.begin();
-          int *sub_renumber = new int[Nnode];
-          int *sub_rev_renumber = new int[sub_Nnode];
+	   
+	  int *sub_rev_renumber = new int[sub_Nnode];
           double totalDegree = 0.0;
-          for(int j=0;j<sub_Nnode;j++){
-            
-            //    fprintf(stderr,"%d %d\n",j,(*it_mem));
-            int orig_nr = (*it_mem);
-            int orig_Nlinks = cpy_node[orig_nr]->links.size(); // ERROR HERE
-            sub_renumber[orig_nr] = j;
-            sub_rev_renumber[j] = orig_nr;
-            sub_node[j] = new Node(j);
-            for(int k=0;k<orig_Nlinks;k++){
-              int orig_link = cpy_node[orig_nr]->links[k].first;
-              int orig_link_newnr = sub_renumber[orig_link];
-              double orig_weight = cpy_node[orig_nr]->links[k].second;
-              if(orig_link < orig_nr){
-                if(sub_mem.find(orig_link) != sub_mem.end()){
-                  sub_node[j]->links.push_back(make_pair(orig_link_newnr,orig_weight));
-                  sub_node[orig_link_newnr]->links.push_back(make_pair(j,orig_weight));
-                  totalDegree += 2.0*orig_weight;
-                }
-              }
-            }
-            it_mem++;
-          }
+          
+	  (*node)[i]->get_sub_nodes(Nnode,  cpy_node, totalDegree, sub_rev_renumber, sub_node );
+	  Node **sub_node_cp = greedy->copy_nodes(&sub_node, sub_Nnode);
+	  
           
           GreedyBase* sub_greedy;
           sub_greedy = new Greedy(R,sub_Nnode,totalDegree,sub_node);
           sub_greedy->initiate();
           partition(R,&sub_node,sub_greedy,true);
-          for(int j=0;j<sub_greedy->Nnode;j++){
-            int Nmembers = sub_node[j]->members.size();
-            for(int k=0;k<Nmembers;k++){
-              subMoveTo[sub_rev_renumber[sub_node[j]->members[k]]] = subModIndex;
+          
+	  for(int j=0;j<sub_greedy->Nnode;j++){
+            vector<int>& subCluster = sub_node[j]->members;
+            for(vector<int>::iterator subCluster_mem_it = subCluster.begin(); subCluster_mem_it < subCluster.end(); subCluster_mem_it++){
+	      cout << sub_node_cp[*subCluster_mem_it]->global_index;
+              subMoveTo[sub_node_cp[*subCluster_mem_it]->global_index] = subModIndex;
             }
             moveTo[subModIndex] = i;
             subModIndex++;
@@ -166,7 +175,7 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
           
           delete [] sub_node;
           delete sub_greedy;
-          delete [] sub_renumber;
+          //delete [] sub_renumber;
           delete [] sub_rev_renumber;
           
         }
@@ -184,10 +193,7 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
         delete (*node)[i];
       delete [] (*node);
       
-      greedy->Nnode = Nnode;
-      greedy->Nmod = Nnode;
-      greedy->node = rpt_node;
-      greedy->initiate();
+      greedy->initiate(rpt_node, Nnode);
       greedy->determMove(subMoveTo);
       greedy->level(node,false); 
       greedy->determMove(moveTo);
@@ -223,10 +229,7 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
         delete (*node)[i];
       delete [] (*node);
       
-      greedy->Nnode = Nnode;
-      greedy->Nmod = Nnode;
-      greedy->node = rpt_node;
-      greedy->initiate();
+      greedy->initiate(rpt_node, Nnode);
       greedy->determMove(moveTo);
       
       (*node) = rpt_node;
@@ -253,16 +256,10 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
         if(fabs(inner_oldCodeLength-greedy->codeLength) < 1.0e-10)
           moved = false;
         
-        if(count == 10){	  
+        if(count == 10){  
           greedy->tune();
           count = 0;
         }
-        // 	if(!silent){
-        // 	  cerr << Nloops;
-        // 	  int loopsize = to_string(Nloops).length();
-        // 	  for(int i=0;i<loopsize;i++)
-        // 	    cerr << "\b";
-        // 	}
       }
       
       greedy->level(node,true);
@@ -284,54 +281,26 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent){
   
 }
 
-void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent,int Ntrials){
+void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent, int Ntrials){
   
-  double shortestCodeLength = 1000.0;
   int Nnode = greedy->Nnode;
   vector<int> cluster(Nnode);
   
-  for(int trial = 0; trial<Ntrials;trial++){
+  for(int trial = 0; trial < Ntrials; trial++){
     
     if(!silent)
       cout << "Attempt " << trial+1 << "/" << Ntrials << endl;
     
-    Node **cpy_node = new Node*[Nnode];
-    for(int i=0;i<Nnode;i++){
-      cpy_node[i] = new Node();
-      cpyNode(cpy_node[i],(*node)[i]);
-    }
+    Node **cpy_node = greedy->copy_nodes(node, Nnode);
     
-    greedy->Nnode = Nnode;
-    greedy->Nmod = Nnode;
-    greedy->node = cpy_node;
-    greedy->initiate();
+    greedy->initiate(cpy_node, Nnode);
     
-    partition(R,&cpy_node,greedy,silent);
-    
-    if(greedy->codeLength < shortestCodeLength){
-      
-      shortestCodeLength = greedy->codeLength;
-      
-      // Store best partition
-      for(int i=0;i<greedy->Nnode;i++){
-        for(vector<int>::iterator mem = cpy_node[i]->members.begin(); mem != cpy_node[i]->members.end(); mem++){
-          cluster[(*mem)] = i;
-        }
-      }
-    }
-    
-    for(int i=0;i<greedy->Nnode;i++){
-      delete cpy_node[i];
-    }
-    delete [] cpy_node;
-    
+    partition(R, &cpy_node, greedy, silent);
+    greedy->store_best_partition(cluster);
   }
   
   // Commit best partition
-  greedy->Nnode = Nnode;
-  greedy->Nmod = Nnode;
-  greedy->node = (*node);
-  greedy->initiate();
+  greedy->initiate((*node), Nnode);
   greedy->determMove(cluster);
   greedy->level(node,true);
   

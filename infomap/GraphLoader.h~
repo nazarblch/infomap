@@ -8,6 +8,25 @@
 
 using namespace std;
 
+template <class T>
+inline std::string to_string (const T& t){
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+}
+
+std::vector<string> split(const string& inputString, const char seperator) {
+    std::vector<string> string_parts;
+    string::size_type substring_begin = 0, substring_end = 0;
+    while ((substring_end = inputString.find(seperator, substring_end)) != string::npos) {
+      string substring(inputString.substr(substring_begin, substring_end - substring_begin));
+      string_parts.push_back(substring);
+      substring_begin = ++substring_end;
+    }
+    string_parts.push_back(inputString.substr(substring_begin, substring_end - substring_begin));
+    return string_parts;
+}
+
 class treeNode{
  public:
   multimap<double,pair<int,string>,greater<double> > members;
@@ -34,6 +53,7 @@ public:
   Graph(): Nnode(0), Nlinks(0), NdoubleLinks(0), NselfLinks(0), totalDegree(0.0) {}
   
   void read_pajek_net(char* input_net_path);
+  void read_edges_net(char* input_net_path);
   
   void init_nodes();
   
@@ -103,7 +123,7 @@ public:
     }  
   }
   
-  treeNode make_ranked_pairs(Node* cluster) {
+  treeNode make_treeNode(Node* cluster) {
     
     treeNode tmp_tN;
      

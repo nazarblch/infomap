@@ -27,8 +27,6 @@ MersenneTwister.h
 /home/nazar/projects/infomap/MersenneTwister.h
 GreedyBase.h
 /home/nazar/projects/infomap/GreedyBase.h
-Node.h
-/home/nazar/projects/infomap/Node.h
 cmath
 -
 iostream
@@ -55,6 +53,8 @@ cstdio
 -
 vector
 -
+Node.h
+/home/nazar/projects/infomap/Node.h
 
 /home/nazar/projects/infomap/MersenneTwister.h
 iostream

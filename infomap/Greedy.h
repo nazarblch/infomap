@@ -3,7 +3,6 @@
 
 #include "MersenneTwister.h"
 #include "GreedyBase.h"
-#include "Node.h"
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -21,6 +20,7 @@ class Greedy : public GreedyBase{
   Greedy(MTRand *RR, int nnode, double deg, Node **node);
   virtual ~Greedy();
   virtual void initiate(void);
+  virtual void initiate(Node **cpy_node, int N);
   virtual void calibrate(void);
   virtual void tune(void);
   virtual void prepare(bool sort);

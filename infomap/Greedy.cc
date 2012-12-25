@@ -185,6 +185,13 @@ void Greedy::initiate(void){
   
 }
 
+void Greedy::initiate(Node **cpy_node, int N) {
+    Nnode = N;
+    Nmod = N;
+    node = cpy_node;
+    initiate();
+}
+
 void Greedy::tune(void){
   
   exit_log_exit = 0.0;

@@ -14,6 +14,7 @@ CMakeFiles/infomap.dir/Greedy.o: ../Node.h
 CMakeFiles/infomap.dir/GreedyBase.o: ../GreedyBase.cc
 CMakeFiles/infomap.dir/GreedyBase.o: ../GreedyBase.h
 CMakeFiles/infomap.dir/GreedyBase.o: ../MersenneTwister.h
+CMakeFiles/infomap.dir/GreedyBase.o: ../Node.h
 
 CMakeFiles/infomap.dir/Node.o: ../Node.cc
 CMakeFiles/infomap.dir/Node.o: ../Node.h

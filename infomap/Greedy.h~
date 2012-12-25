@@ -3,7 +3,6 @@
 
 #include "MersenneTwister.h"
 #include "GreedyBase.h"
-#include "Node.h"
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -35,10 +34,6 @@ class Greedy : public GreedyBase{
   vector<double> mod_degree;
   vector<int> mod_members;
   
-  void print_partition_log() {
-    cout << "Done! Code length " << codeLength << " in " << Nmod << " modules." << endl;
-    cout << "Compressed by " << 100.0*(1.0 - codeLength/(-nodeDegree_log_nodeDegree)) << " percent." << endl;
-  }
   
  protected:
   double plogp(double d);

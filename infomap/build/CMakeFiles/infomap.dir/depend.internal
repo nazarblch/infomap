@@ -15,6 +15,7 @@ CMakeFiles/infomap.dir/GreedyBase.o
  /home/nazar/projects/infomap/GreedyBase.cc
  /home/nazar/projects/infomap/GreedyBase.h
  /home/nazar/projects/infomap/MersenneTwister.h
+ /home/nazar/projects/infomap/Node.h
 CMakeFiles/infomap.dir/Node.o
  /home/nazar/projects/infomap/Node.cc
  /home/nazar/projects/infomap/Node.h

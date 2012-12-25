@@ -6,7 +6,7 @@ Greedy::~Greedy(){
 	
 }
 
-Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah, double uncompressedCodeLength){
+Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah){
 	
   R = RR;
   Nnode = nnode;  
@@ -14,8 +14,7 @@ Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah, double uncompressed
   degree = deg;
   invDegree = 1.0/degree;
   log2 = log(2.0);
-  Nmod = Nnode;
-  this->uncompressedCodeLength = uncompressedCodeLength;	
+  Nmod = Nnode;	
 }
 
 void Greedy::move(bool &moved){
@@ -184,6 +183,13 @@ void Greedy::initiate(void){
   
   //cout << "Initial bit rate is " << codeLength << ", starting merging " << Nnode << " nodes..." << endl;
   
+}
+
+void Greedy::initiate(Node **cpy_node, int N) {
+    Nnode = N;
+    Nmod = N;
+    node = cpy_node;
+    initiate();
 }
 
 void Greedy::tune(void){
