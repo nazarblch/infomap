@@ -8,6 +8,7 @@ Node::~Node(){
 }
 
 Node::Node(){
+   global_index = -1;
 }
 
 
@@ -17,10 +18,14 @@ Node::Node(int nodenr){
   exit = 0.0;
   degree = 0.0;
   members.push_back(nodenr);
+  global_index = -1;
   
 }
 
 Node::Node(int modulenr, int global_modulenr) {
-   Node(modulenr);
+   index = modulenr;
+   exit = 0.0;
+   degree = 0.0;
+   members.push_back(modulenr);
    global_index = global_modulenr;
 }

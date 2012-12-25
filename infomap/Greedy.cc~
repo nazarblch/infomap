@@ -1,13 +1,10 @@
 #include "Greedy.h"
 
 Greedy::~Greedy(){
-  
   vector<int>().swap(modWnode);
-	
 }
 
 Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah){
-	
   R = RR;
   Nnode = nnode;  
   node = ah;
@@ -294,11 +291,11 @@ void Greedy::prepare(bool sort){
 	
 }
 
-void Greedy::level(Node ***node_tmp, bool sort){
+void Greedy::level(bool sort){
   
   prepare(sort);
   
-  (*node_tmp) = new Node*[Nmod];
+  Node*** node_tmp = &(new Node*[Nmod]);
   
   vector<int> nodeInMod(Nnode);
   for(int i=0;i<Nmod;i++){

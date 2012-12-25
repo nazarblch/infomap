@@ -24,7 +24,7 @@ class Greedy : public GreedyBase{
   virtual void calibrate(void);
   virtual void tune(void);
   virtual void prepare(bool sort);
-  virtual void level(Node ***, bool sort);
+  virtual void level(bool sort);
   virtual void move(bool &moved);
   virtual void determMove(vector<int> &moveTo);
   

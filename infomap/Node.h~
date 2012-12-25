@@ -53,6 +53,7 @@ class Node{
     Node* newNode = new Node();
     
     newNode->index = index;
+    newNode->global_index = global_index;
     newNode->exit = exit;
     newNode->degree = degree;
 
@@ -72,51 +73,49 @@ class Node{
   }
   
   
-  void get_sub_nodes(int Nnode, Node**& cpy_node, double& totalDegree, int * &sub_rev_renumber, Node **sub_node) {
+  Node** get_sub_nodes(int Nnode, Node**& cpy_node) {
      
     set<int> sub_mem;
-    
-     int sub_Nnode = members.size();
-	  
-          for(int j = 0; j < sub_Nnode; j++) {
+    int sub_Nnode = members.size();
+    Node **sub_node = new Node*[sub_Nnode]; 
+
+    for(int j = 0; j < sub_Nnode; j++) {
             sub_mem.insert(members[j]);
-	  }
-	  
-	  set<int>::iterator it_mem = sub_mem.begin();
-	  
-	  
-	  
-          int *sub_renumber = new int[Nnode];
-          
-          
-	  for(int j=0; j<sub_Nnode; j++){
+    }
+    
+    set<int>::iterator it_mem = sub_mem.begin();  
+    int *sub_renumber = new int[Nnode];
+                
+    for(int j = 0; j < sub_Nnode; j++){
             
-            int orig_nr = (*it_mem);
-            int orig_Nlinks = cpy_node[orig_nr]->links.size();
+       int orig_nr = members[j];
+       int orig_Nlinks = cpy_node[orig_nr]->links.size();
             
-	    sub_renumber[orig_nr] = j;
-            sub_rev_renumber[j] = orig_nr;
-            sub_node[j] = new Node(j);
-            
-	    for(int k = 0; k < orig_Nlinks; k++){
+       sub_renumber[orig_nr] = j;
+       sub_node[j] = new Node(j, orig_nr);
+       
+       for(int k = 0; k < orig_Nlinks; k++){
               int orig_link = cpy_node[orig_nr]->links[k].first;
               int orig_link_newnr = sub_renumber[orig_link];
               double orig_weight = cpy_node[orig_nr]->links[k].second;
               
-	      if(orig_link < orig_nr){
+            if(orig_link < orig_nr){
                 if(sub_mem.find(orig_link) != sub_mem.end()){
                   sub_node[j]->links.push_back(make_pair(orig_link_newnr,orig_weight));
                   sub_node[orig_link_newnr]->links.push_back(make_pair(j,orig_weight));
-                  totalDegree += 2.0*orig_weight;
+                  sub_node[j]->degree += orig_weight;
+                  sub_node[orig_link_newnr]->degree += orig_weight;
                 }
               }
             }
             
-            it_mem++;
+            
           }
     
    
     delete [] sub_renumber;
+    
+    return sub_node; 
     
   }
 

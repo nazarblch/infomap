@@ -118,7 +118,12 @@ bool is_Partition_the_partition_phase(int iteration) {
   return (iteration > 0) && (iteration % 2 == 0);
 }
 
-void tmp_func() {
+double sum_degree(Node** nodes, int N) {
+  double res = 0;
+  for (int i = 0; i < N; i++) {
+    res += nodes[i]->degree;
+  }
+  return res;
 }
 
 void partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
@@ -142,99 +147,57 @@ void partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
       vector<int> moveTo(Nnode);
       int subModIndex = 0;
       
-      for(int i = 0; i < greedy->Nnode; i++){
+      for(int modIndex = 0; modIndex < greedy->Nnode; modIndex++){
         
-        int sub_Nnode = (*node)[i]->members.size();
+        int sub_Nnode = greedy->node[modIndex]->members.size();
         
         if(sub_Nnode > 1) {
           
-          Node **sub_node = new Node*[sub_Nnode]; 
-	   
-	  int *sub_rev_renumber = new int[sub_Nnode];
-          double totalDegree = 0.0;
-          
-	  (*node)[i]->get_sub_nodes(Nnode,  cpy_node, totalDegree, sub_rev_renumber, sub_node );
-	  Node **sub_node_cp = greedy->copy_nodes(&sub_node, sub_Nnode);
-	  
-          
+          Node** sub_node = greedy->node[modIndex]->get_sub_nodes(Nnode, cpy_node);
+          vector<int> localToGlobal(greedy->node[modIndex]->members);
+
+          double totalDegree = sum_degree(sub_node, sub_Nnode);
+
           GreedyBase* sub_greedy;
-          sub_greedy = new Greedy(R,sub_Nnode,totalDegree,sub_node);
+          sub_greedy = new Greedy(R, sub_Nnode, totalDegree, sub_node);
           sub_greedy->initiate();
-          partition(R,&sub_node,sub_greedy,true);
+        
+          partition(R, &sub_node, sub_greedy, true); 
           
-	  for(int j=0;j<sub_greedy->Nnode;j++){
-            vector<int>& subCluster = sub_node[j]->members;
-            for(vector<int>::iterator subCluster_mem_it = subCluster.begin(); subCluster_mem_it < subCluster.end(); subCluster_mem_it++){
-	      cout << sub_node_cp[*subCluster_mem_it]->global_index;
-              subMoveTo[sub_node_cp[*subCluster_mem_it]->global_index] = subModIndex;
-            }
-            moveTo[subModIndex] = i;
-            subModIndex++;
-            delete sub_node[j];
-          }
-          
-          delete [] sub_node;
+          sub_greedy->update_moves(localToGlobal, subMoveTo, moveTo, subModIndex, modIndex);
+         
+	  sub_greedy->delete_nodes();
           delete sub_greedy;
-          //delete [] sub_renumber;
-          delete [] sub_rev_renumber;
+          localToGlobal.clear();
+        
+        } else {
           
-        }
-        else{
-          
-          subMoveTo[(*node)[i]->members[0]] = subModIndex;
-          moveTo[subModIndex] = i;
-          
+          subMoveTo[greedy->node[modIndex]->members[0]] = subModIndex;
+          moveTo[subModIndex] = modIndex;
           subModIndex++;
-          
         }
       }
       
-      for(int i=0;i<greedy->Nnode;i++)
-        delete (*node)[i];
-      delete [] (*node);
+      greedy->delete_nodes();
       
       greedy->initiate(rpt_node, Nnode);
       greedy->determMove(subMoveTo);
-      greedy->level(node,false); 
+      greedy->level(false); 
       greedy->determMove(moveTo);
-      (*node) = rpt_node;
       
       outer_oldCodeLength = greedy->codeLength;
       
       if(!silent)
         cout << greedy->Nnode << " modules, looping " << flush;
       
-    }
-    else if(iteration > 0){
+    } else if (iteration > 0) {
       
       if(!silent)
         cout << "Iteration " << iteration+1 << ", moving " << Nnode << " nodes, looping " << flush;
       
-      
-      Node **rpt_node = new Node*[Nnode];
-      for(int i=0;i<Nnode;i++){
-        rpt_node[i] = new Node();
-        cpyNode(rpt_node[i],cpy_node[i]);
-      }
-      
-      vector<int> moveTo(Nnode);
-      for(int i=0;i<greedy->Nnode;i++){
-        int Nmembers = (*node)[i]->members.size();
-        for(int j=0;j<Nmembers;j++){
-          moveTo[(*node)[i]->members[j]] = i;
-        }
-      }
-      
-      for(int i=0;i<greedy->Nnode;i++)
-        delete (*node)[i];
-      delete [] (*node);
-      
-      greedy->initiate(rpt_node, Nnode);
-      greedy->determMove(moveTo);
-      
-      (*node) = rpt_node;
-    }
-    else{
+      greedy->set_first_level_in_modules(&cpy_node, Nnode);
+    
+    } else {
       
       if(!silent)
         cout << "Iteration " << iteration+1 << ", moving " << Nnode << " nodes, looping " << flush;
@@ -242,36 +205,19 @@ void partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
     }
     
     double oldCodeLength;
+    
     do{
       oldCodeLength = greedy->codeLength;
-      bool moved = true;
-      int Nloops = 0;
-      int count = 0;
-      while(moved){
-        moved = false;
-        double inner_oldCodeLength = greedy->codeLength;
-        greedy->move(moved);
-        Nloops++;
-        count++;
-        if(fabs(inner_oldCodeLength-greedy->codeLength) < 1.0e-10)
-          moved = false;
-        
-        if(count == 10){  
-          greedy->tune();
-          count = 0;
-        }
-      }
       
-      greedy->level(node,true);
-      
-      if(!silent)
-        cout << Nloops << " " << flush;
+      greedy->louvian(silent);
       
     } while(oldCodeLength - greedy->codeLength >  1.0e-10);
     
     iteration++;
-    if(!silent)
+    
+    if(!silent) {
       cout << "times between mergings to code length " <<  greedy->codeLength << " in " << greedy->Nmod << " modules." << endl;
+    }
     
   } while(outer_oldCodeLength - greedy->codeLength > 1.0e-10);
   
@@ -280,6 +226,20 @@ void partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
   delete [] cpy_node;
   
 }
+
+
+void simple_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent){
+  
+  double oldCodeLength;
+  
+  do {
+      oldCodeLength = greedy->codeLength;  
+      greedy->louvian(silent);
+  } while(oldCodeLength - greedy->codeLength >  1.0e-10);
+    
+}
+
+
 
 void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent, int Ntrials){
   
@@ -302,7 +262,8 @@ void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent
   // Commit best partition
   greedy->initiate((*node), Nnode);
   greedy->determMove(cluster);
-  greedy->level(node,true);
+  greedy->level(true);
+  (*node) = greedy->node;
   
 }
 

@@ -1,13 +1,10 @@
 #include "Greedy.h"
 
 Greedy::~Greedy(){
-  
   vector<int>().swap(modWnode);
-	
 }
 
 Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah){
-	
   R = RR;
   Nnode = nnode;  
   node = ah;
@@ -294,18 +291,18 @@ void Greedy::prepare(bool sort){
 	
 }
 
-void Greedy::level(Node ***node_tmp, bool sort){
+void Greedy::level(bool sort){
   
   prepare(sort);
   
-  (*node_tmp) = new Node*[Nmod];
+  Node** node_tmp = new Node*[Nmod];
   
   vector<int> nodeInMod(Nnode);
   for(int i=0;i<Nmod;i++){
-    (*node_tmp)[i] = new Node();
-    (*node_tmp)[i]->index = i;
-    (*node_tmp)[i]->exit = mod_exit[modWnode[i]];
-    (*node_tmp)[i]->degree = mod_degree[modWnode[i]];
+    node_tmp[i] = new Node();
+    node_tmp[i]->index = i;
+    node_tmp[i]->exit = mod_exit[modWnode[i]];
+    node_tmp[i]->degree = mod_degree[modWnode[i]];
     nodeInMod[modWnode[i]] = i;
   }
   
@@ -318,7 +315,7 @@ void Greedy::level(Node ***node_tmp, bool sort){
 		
     int i_M = nodeInMod[node[i]->index];
     
-    copy(node[i]->members.begin(),node[i]->members.end(),back_inserter((*node_tmp)[i_M]->members));
+    copy(node[i]->members.begin(),node[i]->members.end(),back_inserter(node_tmp[i_M]->members));
 		
     int Nlinks = node[i]->links.size(); 
     for(int j=0;j<Nlinks;j++){
@@ -339,7 +336,7 @@ void Greedy::level(Node ***node_tmp, bool sort){
   for(int i=0;i<Nmod;i++){
     for(it_M = wNtoM[i].begin(); it_M != wNtoM[i].end(); it_M++){
       if(it_M->first != i){
-				(*node_tmp)[i]->links.push_back(make_pair(it_M->first,it_M->second));
+				node_tmp[i]->links.push_back(make_pair(it_M->first,it_M->second));
       }
     } 
   }
@@ -353,7 +350,7 @@ void Greedy::level(Node ***node_tmp, bool sort){
   delete [] node;
   
   Nnode = Nmod;
-  node = (*node_tmp);
+  node = node_tmp;
   
   calibrate();
   
