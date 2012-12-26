@@ -40,6 +40,36 @@ class Greedy : public GreedyBase{
   double plogp(double d);
   vector<pair<int,double> >::iterator link;
   vector<int> modWnode;
+  
+  vector<int> randomPermutation(int n) {
+   
+    vector<int> randomOrder(n);
+    
+    for(int i = 0; i < n; i++) {
+      randomOrder[i] = i;
+    }
+    
+    for(int i = 0; i < n - 1; i++){
+      int randPos = i + R->randInt(n-i-1);
+      swap(randomOrder[i], randomOrder[randPos]);
+    }
+    
+    return randomOrder;
+  }
+  
+  template <class T>
+  vector<T>& randomPermutation(vector<T>& array) {
+    
+    int n = array.size();
+    
+    for(int i = 0; i < n - 1; i++){
+      int randPos = i + R->randInt(n-i-1);
+      swap(array[i], array[randPos]);
+    }
+    
+    return array;
+  }
+  
 };
 
 #endif

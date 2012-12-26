@@ -116,6 +116,7 @@ class GreedyBase{
       bool moved = true;
       int Nloops = 0;
       int count = 0;
+      
       while(moved){
         moved = false;
         double inner_oldCodeLength = codeLength;

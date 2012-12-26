@@ -24,7 +24,7 @@ class Greedy : public GreedyBase{
   virtual void calibrate(void);
   virtual void tune(void);
   virtual void prepare(bool sort);
-  virtual void level(Node ***, bool sort);
+  virtual void level(bool sort);
   virtual void move(bool &moved);
   virtual void determMove(vector<int> &moveTo);
   
@@ -40,6 +40,22 @@ class Greedy : public GreedyBase{
   double plogp(double d);
   vector<pair<int,double> >::iterator link;
   vector<int> modWnode;
+  
+  vector<int> randomPermutation(int n) {
+   
+    vector<int> randomOrder(n);
+    
+    for(int i = 0; i < n; i++) {
+      randomOrder[i] = i;
+    }
+    
+    for(int i = 0; i < n - 1; i++){
+      int randPos = i + R->randInt(n-i-1);
+      swap(randomOrder[i], randomOrder[randPos]);
+    }
+    
+    return randomOrder;
+  }
 };
 
 #endif

@@ -111,6 +111,33 @@ class GreedyBase{
       initiate(copy_nodes(cpy_node, N), N);
       determMove(moveTo);
   }
+  
+  void louvian(bool silent) {
+      bool moved = true;
+      int Nloops = 0;
+      int count = 0;
+      while(moved){
+        moved = false;
+        double inner_oldCodeLength = codeLength;
+        move(moved);
+        Nloops++;
+        count++;
+        if(fabs(inner_oldCodeLength - codeLength) < 1.0e-10) {
+          moved = false;
+        }
+        
+        if(count == 10){  
+          tune();
+          count = 0;
+        }
+      }
+      
+      level(true);
+      
+      if(!silent) {
+        cout << Nloops << " " << flush;
+      }
+  }
  
  
  protected:

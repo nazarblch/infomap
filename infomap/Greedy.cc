@@ -16,96 +16,59 @@ Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah){
 
 void Greedy::move(bool &moved){
 	
-  // Generate random enumeration of nodes
-  vector<int> randomOrder(Nnode);
-  for(int i=0;i<Nnode;i++)
-    randomOrder[i] = i;
-  for(int i=0;i<Nnode-1;i++){
-    int randPos = i + R->randInt(Nnode-i-1);
-    int tmp = randomOrder[i];
-    randomOrder[i] = randomOrder[randPos];
-    randomOrder[randPos] = tmp;
-  }
+  vector<int> randomOrder = randomPermutation(Nnode);
   
-  unsigned int offset = 1;    
-  vector<unsigned int> redirect(Nnode,0);
-  vector<pair<int,double> > wNtoM(Nnode);
-  for(int k=0;k<Nnode;k++){
+  for(int k = 0; k < Nnode; k++){
     
-    // Pick nodes in random order
-    int flip = randomOrder[k]; 
+    int curNodeId = randomOrder[k]; 
 		
-    // Reset offset when int overflows
-    if(offset > INT_MAX){ 
-      for(int j=0;j<Nnode;j++)
-				redirect[j] = 0;
-      offset = 1;
+    map<int, double> wToCluster;
+	
+    vector< pair<int, double> > curLinks = node[curNodeId]->links;
+    vector< pair<int, double> >::iterator ind_w;
+         
+    for(ind_w = curLinks.begin(); ind_w < curLinks.end(); ind_w++){
+      int nb_M = node[ind_w->first]->index;
+      double nb_w = ind_w->second;
+      wToCluster[nb_M] += nb_w;
     }    
-		
-    // Create vector with module links
-    int Nlinks = node[flip]->links.size();
-    int NmodLinks = 0;
-    for(int j=0; j<Nlinks; j++){
-      int nb_M = node[node[flip]->links[j].first]->index;
-      double nb_w = node[flip]->links[j].second;
-			
-      if(redirect[nb_M] >= offset){
-				wNtoM[redirect[nb_M] - offset].second += nb_w;
-      }
-      else{
-				redirect[nb_M] = offset + NmodLinks;
-				wNtoM[NmodLinks].first = nb_M;
-				wNtoM[NmodLinks].second = nb_w;
-				NmodLinks++;
-      }
-    }    
-		
+    	
     // Calculate exit weight to own module
-    int fromM = node[flip]->index; // 
+    int fromM = node[curNodeId]->index; 
     double wfromM = 0.0;
-    if(redirect[fromM] >= offset)
-      wfromM = wNtoM[redirect[fromM] - offset].second;
+    if(wToCluster.find(fromM) != wToCluster.end()) {
+      wfromM = wToCluster[fromM];
+    }
+     	 
+    vector<pair<int, double> > wToClusterVec(wToCluster.begin(), wToCluster.end());
     
     // Option to move to empty module (if node not already alone)
-    if(mod_members[fromM] > static_cast<int>(node[flip]->members.size())){
-      if(Nempty > 0){
-				wNtoM[NmodLinks].first = mod_empty[Nempty-1];
-				wNtoM[NmodLinks].second = 0;
-				NmodLinks++;
-      }
+    if(mod_members[fromM] > node[curNodeId]->members.size() && Nempty > 0 && wToCluster.find(mod_empty[Nempty-1]) == wToCluster.end()) {
+	wToClusterVec.push_back(make_pair(mod_empty[Nempty-1], 0.0));
     }
-		
-    // Randomize link order
-    for(int j=0;j<NmodLinks-1;j++){
-      int randPos = j + R->randInt(NmodLinks-j-1);
-      int tmp_M = wNtoM[j].first;
-      double tmp_w = wNtoM[j].second;
-      wNtoM[j].first = wNtoM[randPos].first;
-      wNtoM[j].second = wNtoM[randPos].second;
-      wNtoM[randPos].first = tmp_M;
-      wNtoM[randPos].second = tmp_w;
-    }
-		
+    
+    wToClusterVec = randomPermutation(wToClusterVec);
+    		
     int bestM = fromM;
     double best_weight = 0.0;
     double best_delta = 0.0;
     
     // Find the move that minimizes the description length
-    for (int j=0; j<NmodLinks; j++) {
+    for (ind_w = wToClusterVec.begin(); ind_w < wToClusterVec.end(); ind_w++) {
       
-      int toM = wNtoM[j].first;
-      double wtoM = wNtoM[j].second;
+      int toM = ind_w->first;
+      double wtoM = ind_w->second;
       
       if(toM != fromM){
 				
 				double delta_exit = plogp(exitDegree - 2*wtoM + 2*wfromM) - exit;
 				
 				double delta_exit_log_exit = - plogp(mod_exit[fromM]) - plogp(mod_exit[toM]) \
-				+ plogp(mod_exit[fromM] - node[flip]->exit + 2*wfromM) + plogp(mod_exit[toM] + node[flip]->exit - 2*wtoM);
+				+ plogp(mod_exit[fromM] - node[curNodeId]->exit + 2*wfromM) + plogp(mod_exit[toM] + node[curNodeId]->exit - 2*wtoM);
 				
 				double delta_degree_log_degree = - plogp(mod_exit[fromM] + mod_degree[fromM]) - plogp(mod_exit[toM] + mod_degree[toM]) \
-				+ plogp(mod_exit[fromM] + mod_degree[fromM] - node[flip]->exit - node[flip]->degree + 2*wfromM) \
-				+ plogp(mod_exit[toM] + mod_degree[toM] + node[flip]->exit + node[flip]->degree - 2*wtoM);
+				+ plogp(mod_exit[fromM] + mod_degree[fromM] - node[curNodeId]->exit - node[curNodeId]->degree + 2*wfromM) \
+				+ plogp(mod_exit[toM] + mod_degree[toM] + node[curNodeId]->exit + node[curNodeId]->degree - 2*wtoM);
 				
 				double deltaL = delta_exit - 2.0*delta_exit_log_exit + delta_degree_log_degree;
 				
@@ -125,7 +88,7 @@ void Greedy::move(bool &moved){
       if(mod_members[bestM] == 0){
 				Nempty--;
       }
-      if(mod_members[fromM] == static_cast<int>(node[flip]->members.size())){
+      if(mod_members[fromM] == static_cast<int>(node[curNodeId]->members.size())){
 				mod_empty[Nempty] = fromM;
 				Nempty++;
       }
@@ -134,12 +97,12 @@ void Greedy::move(bool &moved){
       exit_log_exit -= plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
       degree_log_degree -= plogp(mod_exit[fromM] + mod_degree[fromM]) + plogp(mod_exit[bestM] + mod_degree[bestM]); 
 			
-      mod_exit[fromM] -= node[flip]->exit - 2*wfromM;
-      mod_degree[fromM] -= node[flip]->degree;
-      mod_members[fromM] -= node[flip]->members.size();
-      mod_exit[bestM] += node[flip]->exit - 2*best_weight;
-      mod_degree[bestM] += node[flip]->degree;
-      mod_members[bestM] += node[flip]->members.size();
+      mod_exit[fromM] -= node[curNodeId]->exit - 2*wfromM;
+      mod_degree[fromM] -= node[curNodeId]->degree;
+      mod_members[fromM] -= node[curNodeId]->members.size();
+      mod_exit[bestM] += node[curNodeId]->exit - 2*best_weight;
+      mod_degree[bestM] += node[curNodeId]->degree;
+      mod_members[bestM] += node[curNodeId]->members.size();
 			
       exitDegree += mod_exit[fromM] + mod_exit[bestM];
       exit_log_exit += plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
@@ -149,17 +112,13 @@ void Greedy::move(bool &moved){
       
       codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree;
       
-      node[flip]->index = bestM;
+      node[curNodeId]->index = bestM;
       moved = true;
 			
     }
 		
-    offset += Nnode;
-		
-  }
   
-  //cout << "Code length = " << codeLength << endl;
-	
+  }	
 }
 
 void Greedy::initiate(void){

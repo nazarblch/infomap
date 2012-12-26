@@ -118,7 +118,7 @@ bool is_Partition_the_partition_phase(int iteration) {
   return (iteration > 0) && (iteration % 2 == 0);
 }
 
-double sum_degree(Node** nodes, int N) {
+double sum_degree(Node** &nodes, int N) {
   double res = 0;
   for (int i = 0; i < N; i++) {
     res += nodes[i]->degree;
