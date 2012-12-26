@@ -15,16 +15,17 @@ Greedy::Greedy(MTRand *RR, int nnode, double deg, Node **ah){
 }
 
 void Greedy::move(bool &moved){
-	
+
   vector<int> randomOrder = randomPermutation(Nnode);
   
   for(int k = 0; k < Nnode; k++){
     
     int curNodeId = randomOrder[k]; 
-		
+    Node* curNode = node[curNodeId];
+    
     map<int, double> wToCluster;
-	
-    vector< pair<int, double> > curLinks = node[curNodeId]->links;
+
+    vector< pair<int, double> >& curLinks = curNode->links;
     vector< pair<int, double> >::iterator ind_w;
          
     for(ind_w = curLinks.begin(); ind_w < curLinks.end(); ind_w++){
@@ -32,9 +33,9 @@ void Greedy::move(bool &moved){
       double nb_w = ind_w->second;
       wToCluster[nb_M] += nb_w;
     }    
-    	
+    
     // Calculate exit weight to own module
-    int fromM = node[curNodeId]->index; 
+    int fromM = curNode->index; 
     double wfromM = 0.0;
     if(wToCluster.find(fromM) != wToCluster.end()) {
       wfromM = wToCluster[fromM];
@@ -44,11 +45,11 @@ void Greedy::move(bool &moved){
     
     // Option to move to empty module (if node not already alone)
     if(mod_members[fromM] > node[curNodeId]->members.size() && Nempty > 0 && wToCluster.find(mod_empty[Nempty-1]) == wToCluster.end()) {
-	wToClusterVec.push_back(make_pair(mod_empty[Nempty-1], 0.0));
+        wToClusterVec.push_back(make_pair(mod_empty[Nempty-1], 0.0));
     }
     
     wToClusterVec = randomPermutation(wToClusterVec);
-    		
+
     int bestM = fromM;
     double best_weight = 0.0;
     double best_delta = 0.0;
@@ -59,65 +60,37 @@ void Greedy::move(bool &moved){
       int toM = ind_w->first;
       double wtoM = ind_w->second;
       
-      if(toM != fromM){
+      if(toM == fromM) continue;
 				
-				double delta_exit = plogp(exitDegree - 2*wtoM + 2*wfromM) - exit;
+      double deltaL = deltaCodeLength(curNodeId, toM, wtoM, fromM, wfromM);
 				
-				double delta_exit_log_exit = - plogp(mod_exit[fromM]) - plogp(mod_exit[toM]) \
-				+ plogp(mod_exit[fromM] - node[curNodeId]->exit + 2*wfromM) + plogp(mod_exit[toM] + node[curNodeId]->exit - 2*wtoM);
-				
-				double delta_degree_log_degree = - plogp(mod_exit[fromM] + mod_degree[fromM]) - plogp(mod_exit[toM] + mod_degree[toM]) \
-				+ plogp(mod_exit[fromM] + mod_degree[fromM] - node[curNodeId]->exit - node[curNodeId]->degree + 2*wfromM) \
-				+ plogp(mod_exit[toM] + mod_degree[toM] + node[curNodeId]->exit + node[curNodeId]->degree - 2*wtoM);
-				
-				double deltaL = delta_exit - 2.0*delta_exit_log_exit + delta_degree_log_degree;
-				
-				if(deltaL < best_delta){
-					bestM = toM;
-					best_weight = wtoM;
-					best_delta = deltaL;  
-				}
-				
-      }
+      if(deltaL < best_delta){
+          bestM = toM;
+          best_weight = wtoM;
+          best_delta = deltaL;  
+      }			
+      
     }
     
     // Make best possible move
-    if(bestM != fromM){
+    if (bestM != fromM) {
 			
       //Update empty module vector
-      if(mod_members[bestM] == 0){
-				Nempty--;
+      if (mod_members[bestM] == 0) {
+	  Nempty--;
       }
-      if(mod_members[fromM] == static_cast<int>(node[curNodeId]->members.size())){
-				mod_empty[Nempty] = fromM;
-				Nempty++;
-      }
-			
-      exitDegree -= mod_exit[fromM] + mod_exit[bestM];
-      exit_log_exit -= plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
-      degree_log_degree -= plogp(mod_exit[fromM] + mod_degree[fromM]) + plogp(mod_exit[bestM] + mod_degree[bestM]); 
-			
-      mod_exit[fromM] -= node[curNodeId]->exit - 2*wfromM;
-      mod_degree[fromM] -= node[curNodeId]->degree;
-      mod_members[fromM] -= node[curNodeId]->members.size();
-      mod_exit[bestM] += node[curNodeId]->exit - 2*best_weight;
-      mod_degree[bestM] += node[curNodeId]->degree;
-      mod_members[bestM] += node[curNodeId]->members.size();
-			
-      exitDegree += mod_exit[fromM] + mod_exit[bestM];
-      exit_log_exit += plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
-      degree_log_degree += plogp(mod_exit[fromM] + mod_degree[fromM]) + plogp(mod_exit[bestM] + mod_degree[bestM]); 
       
-      exit = plogp(exitDegree);
-      
-      codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree;
-      
-      node[curNodeId]->index = bestM;
-      moved = true;
+      if (mod_members[fromM] == node[curNodeId]->members.size()) {
+	  mod_empty[Nempty] = fromM;
+	  Nempty++;
+      }			
 			
+      removeNodeFromModule(fromM, curNode);
+      addNodeToModule(bestM, curNode);		 
+     
+      moved = true;		
     }
 		
-  
   }	
 }
 
@@ -141,7 +114,7 @@ void Greedy::initiate(void){
   
 }
 
-void Greedy::initiate(Node **cpy_node, int N) {
+void Greedy::initiate(Node** cpy_node, int N) {
     Nnode = N;
     Nmod = N;
     node = cpy_node;
@@ -315,15 +288,6 @@ void Greedy::level(bool sort){
   
 }
 
-double Greedy::plogp(double d){
-	
-  if(d < 1.0e-10)
-    return 0.0;
-  else
-    return invDegree*d*log(invDegree*d)/log2;
-	
-}
-
 void Greedy::determMove(vector<int> &moveTo){
 	
   for(int i=0;i<Nnode;i++){
@@ -377,3 +341,39 @@ void Greedy::determMove(vector<int> &moveTo){
   }
 	
 };
+
+
+double Greedy::plogp(double d){
+
+  if(d < 1.0e-10) {
+    return 0.0;
+  } else {
+    return invDegree*d*log(invDegree*d)/log2;
+  }
+}
+
+double Greedy::delta_plogp(double q1, double q0) {
+   return plogp(q1) - plogp(q0);
+}
+
+double Greedy::deltaCodeLength(int curNodeId, int toM, double wtoM, int fromM, double wfromM) {
+   
+   double node_exit = node[curNodeId]->exit;
+   double node_deg = node[curNodeId]->degree; 
+  
+   double delta_exit = plogp(exitDegree - 2*wtoM + 2*wfromM) - exit;
+	
+   double new_exit_fromM = mod_exit[fromM] - node_exit + 2*wfromM;
+   double new_exit_toM = mod_exit[toM] + node_exit - 2*wtoM;
+   double new_deg_fromM = mod_degree[fromM] - node_deg;
+   double new_deg_toM = mod_degree[toM] + node_deg;
+				
+   double delta_exit_log_exit = delta_plogp(new_exit_fromM, mod_exit[fromM]) + 
+                                delta_plogp(new_exit_toM, mod_exit[toM]);
+   double delta_degree_log_degree = delta_plogp(new_exit_fromM + new_deg_fromM, mod_exit[fromM] + mod_degree[fromM]) +
+	                            delta_plogp(new_exit_toM + new_deg_toM, mod_exit[toM] + mod_degree[toM]);
+				
+   double deltaL = delta_exit - 2.0*delta_exit_log_exit + delta_degree_log_degree;
+   
+   return deltaL;
+}
