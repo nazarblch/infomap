@@ -1,1 +1,0 @@
-/home/nazar/projects/infomap/build/CMakeFiles/infomap.dir

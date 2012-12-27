@@ -41,6 +41,35 @@ class Greedy : public GreedyBase{
   double delta_plogp(double q1, double q0);
   double deltaCodeLength(int curNodeId, int toM, double wtoM, int fromM, double wfromM);
   
+  void refresh_nodeDegree_log_nodeDegree () {
+      nodeDegree_log_nodeDegree = 0.0;
+      for(int i=0;i<Nmod;i++){
+          nodeDegree_log_nodeDegree += plogp(node[i]->degree);
+      }
+  }
+   
+  void set_mod_params_to_zero() {
+      exit_log_exit = 0.0;
+      degree_log_degree = 0.0;
+      exitDegree = 0.0;
+  
+      vector<double>(Nmod, 0.0).swap(mod_exit);
+      vector<double>(Nmod, 0.0).swap(mod_degree);
+      vector<int>(Nmod, 0).swap(mod_members);
+  }
+  
+  void refresh_code_params() {
+    
+    for (int i = 0; i < Nmod; i++) {
+      exit_log_exit += plogp(mod_exit[i]);
+      degree_log_degree += plogp(mod_exit[i] + mod_degree[i]);
+      exitDegree += mod_exit[i]; 
+    }
+	
+    exit = plogp(exitDegree);
+    codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree; 
+  }
+  
   double sumModuleNodeWeight(int modId, const Node* newNode) {
     
     vector< pair<int, double> >::const_iterator ind_w;

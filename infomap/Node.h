@@ -21,9 +21,7 @@ class Node{
  public:
   ~Node();
   Node();
-  
   Node(int modulenr);
-  
   Node(int modulenr, int global_modulenr);
 
   vector<int> members; // If module, lists member nodes in module
@@ -33,6 +31,15 @@ class Node{
   double degree; // total degree of node / module
   int index; // the node / module identity
   int global_index;
+  
+  void refresh_degree() {
+    double Mdeg = 0.0;
+    for(vector<pair<int,double> >::iterator link = links.begin(); link != links.end(); link++) {
+      Mdeg += (*link).second;
+    }
+    exit = Mdeg;
+    degree = Mdeg; 
+  }
   
   string str() {
     stringstream res;
@@ -116,7 +123,7 @@ class Node{
 
  
  protected:
-  
+   
 };
 
 

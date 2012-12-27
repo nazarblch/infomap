@@ -96,22 +96,12 @@ void Greedy::move(bool &moved){
 
 void Greedy::initiate(void){
   
-  for(int i=0;i<Nnode;i++){
-    double Mdeg = 0.0;
-    for(link = node[i]->links.begin(); link != node[i]->links.end();link++)
-      Mdeg += (*link).second;
-    node[i]->exit = Mdeg;
-    node[i]->degree = Mdeg; //Update when self-links exist
+  for(int i = 0 ;i < Nnode; i++){
+    node[i]->refresh_degree();
   }
-	
-  nodeDegree_log_nodeDegree = 0.0;
-  for(int i=0;i<Nmod;i++)
-    nodeDegree_log_nodeDegree += plogp(node[i]->degree);
-  
-  calibrate();
-  
-  //cout << "Initial bit rate is " << codeLength << ", starting merging " << Nnode << " nodes..." << endl;
-  
+
+  refresh_nodeDegree_log_nodeDegree();
+  calibrate(); 
 }
 
 void Greedy::initiate(Node** cpy_node, int N) {
@@ -123,15 +113,7 @@ void Greedy::initiate(Node** cpy_node, int N) {
 
 void Greedy::tune(void){
   
-  exit_log_exit = 0.0;
-  degree_log_degree = 0.0;
-  exitDegree = 0.0;
-  
-  for(int i=0;i<Nmod;i++){
-    mod_exit[i] = 0.0;
-    mod_degree[i] = 0.0;
-    mod_members[i] = 0;
-  }
+  set_mod_params_to_zero();
 	
   for(int i=0;i<Nnode;i++){
     int i_M = node[i]->index;
@@ -144,20 +126,11 @@ void Greedy::tune(void){
       double nb_w = node[i]->links[j].second;
       int nb_M = node[nb]->index;
       if(i_M != nb_M)
-				mod_exit[i_M] += nb_w;
+	mod_exit[i_M] += nb_w;
     }
   }
   
-  for(int i=0;i<Nmod;i++){
-    exit_log_exit += plogp(mod_exit[i]);
-    degree_log_degree += plogp(mod_exit[i] + mod_degree[i]);
-    exitDegree += mod_exit[i]; 
-  }
-	
-  exit = plogp(exitDegree);
-	
-  codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree; 
-	
+  refresh_code_params();
 }
 
 void Greedy::calibrate(void){
@@ -165,30 +138,16 @@ void Greedy::calibrate(void){
   vector<int>(Nmod).swap(mod_empty);
   Nempty = 0;
   
-  vector<double>(Nmod).swap(mod_exit);
-  vector<double>(Nmod).swap(mod_degree);
-  vector<int>(Nmod).swap(mod_members);
-	
-  exit_log_exit = 0.0;
-  degree_log_degree = 0.0;
-  exitDegree = 0.0;
+  set_mod_params_to_zero();
   
-  for(int i=0;i<Nmod;i++){
-    
-    exit_log_exit += plogp(node[i]->exit);
-    degree_log_degree += plogp(node[i]->exit + node[i]->degree);
-    exitDegree += node[i]->exit;
-		
+  for (int i = 0; i < Nmod; i++) {
     mod_exit[i] = node[i]->exit;
     mod_degree[i] = node[i]->degree;
     mod_members[i] = node[i]->members.size();
     node[i]->index = i;
   }
-	
-  exit = plogp(exitDegree);
-	
-  codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree; 
-	
+  
+  refresh_code_params();
 }
 
 void Greedy::prepare(bool sort){
