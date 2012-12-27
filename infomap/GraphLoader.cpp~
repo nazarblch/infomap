@@ -195,7 +195,7 @@ void Graph::read_edges_net(char* input_net_path) {
   
   nodeNames = new string[Nnode];
   
-  for(id2ind_it = id2ind.begin(); id2ind_it < id2ind.end(); ++id2ind_it){
+  for(id2ind_it = id2ind.begin(); id2ind_it != id2ind.end(); ++id2ind_it){
       nodeNames[id2ind_it->second] = to_string(id2ind_it->first);
   }
   

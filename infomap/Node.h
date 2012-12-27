@@ -26,11 +26,13 @@ class Node{
 
   vector<int> members; // If module, lists member nodes in module
   vector<pair<int,double> > links; // List of identities and link weight of connected nodes/modules  
+  set<int> modIds;
   
   double exit; // total weight of links to other nodes / modules
   double degree; // total degree of node / module
   int index; // the node / module identity
   int global_index;
+  
   
   void refresh_degree() {
     double Mdeg = 0.0;

@@ -26,6 +26,7 @@ class Graph {
   
   Node **nodes;
   string* nodeNames;
+  
   map<int,map<int,double> > Links;
   int Nnode;
   int Nlinks;
@@ -38,6 +39,8 @@ class Graph {
   string net_path;
 
 public:
+  
+  map<int, int> id2ind;
   
   Graph(): Nnode(0), Nlinks(0), NdoubleLinks(0), NselfLinks(0), totalDegree(0.0) {}
   

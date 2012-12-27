@@ -23,6 +23,8 @@ class GreedyBase{
   virtual void move(bool &moved){};
   virtual void determMove(vector<int> &moveTo){};
   void print_partition_log();
+  virtual void initFromFile(const char* input_coms_path,  map<int, int>& id2ind){};
+  
   int Nmod;
   int Nnode;
  

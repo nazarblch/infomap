@@ -146,7 +146,6 @@ void Graph::read_edges_net(char* input_net_path) {
   
   net_path.assign(input_net_path);
   
-  map<int, int> id2ind;
   map<int, int>::iterator id2ind_it;
   
   // Read links in format "from to weight", for example "1 3 2" (all integers) and each undirected link only ones (weight is optional).

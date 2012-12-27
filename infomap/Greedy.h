@@ -12,6 +12,7 @@
 #include <stack>
 #include <map>
 #include <algorithm>
+#include <iterator>
 using namespace std;
 
 
@@ -23,10 +24,12 @@ class Greedy : public GreedyBase{
   virtual void initiate(Node **cpy_node, int N);
   virtual void calibrate(void);
   virtual void tune(void);
-  virtual void prepare(bool sort);
+  virtual void gather_nonEmpty_modules(bool sort);
   virtual void level(bool sort);
   virtual void move(bool &moved);
   virtual void determMove(vector<int> &moveTo);
+  
+  virtual void initFromFile(const char* input_coms_path, map<int, int>& id2ind);
   
   int Nempty;
   vector<int> mod_empty;
@@ -35,15 +38,37 @@ class Greedy : public GreedyBase{
   vector<double> mod_degree;
   vector<int> mod_members;
   
+  struct Mod_cmp {
+      vector<double>* val;
+    
+      Mod_cmp(vector<double>& arr){
+	val = &arr;
+      }
+    
+      bool operator() (int i, int j) { 
+	return ((*val)[i] > (*val)[j]);
+      }
+  };
   
  protected:
   double plogp(double d);
   double delta_plogp(double q1, double q0);
   double deltaCodeLength(int curNodeId, int toM, double wtoM, int fromM, double wfromM);
   
+  void push_node_members_to_module(Node* oldNode, Node* module);
+  
+  Node* create_node_from_module(int modPos) {
+     Node* newNode = new Node();
+     newNode->index = modPos;
+     newNode->exit = mod_exit[modWnode[modPos]];
+     newNode->degree = mod_degree[modWnode[modPos]];
+
+     return newNode;
+  }
+  
   void refresh_nodeDegree_log_nodeDegree () {
       nodeDegree_log_nodeDegree = 0.0;
-      for(int i=0;i<Nmod;i++){
+      for(int i = 0; i < Nnode; i++){
           nodeDegree_log_nodeDegree += plogp(node[i]->degree);
       }
   }
@@ -111,6 +136,10 @@ class Greedy : public GreedyBase{
       return;
     }
     
+    if(mod_members[modId] == 0) {
+	Nempty--;
+    }
+    
     double node_mod_link_w = sumModuleNodeWeight(modId, newNode);
     
     eraseModuleCode(modId);
@@ -128,6 +157,11 @@ class Greedy : public GreedyBase{
     if (newNode->index != modId) {
       cout << "Warning: pop node from module which it doesn't belong to" << endl;
       return;
+    }
+    
+    if(mod_members[modId] == newNode->members.size()) {
+	mod_empty[Nempty] = modId;
+	Nempty++;
     }
    
     double node_mod_link_w = sumModuleNodeWeight(modId, newNode);;

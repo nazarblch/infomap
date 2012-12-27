@@ -68,6 +68,12 @@ int main(int argc,char *argv[]){
   greedy->initiate();
   
   double uncompressedCodeLength = -greedy->nodeDegree_log_nodeDegree;
+  
+  string ground_coms(networkName.begin(), networkName.begin() + networkName.find_last_of('/'));
+  ground_coms += "/c.dat";
+  greedy->initFromFile(ground_coms.c_str(), G.id2ind);
+  
+  return 0;
 
   repeated_partition(R, &node, greedy, false, Ntrials);
   int Nmod = greedy->Nnode;

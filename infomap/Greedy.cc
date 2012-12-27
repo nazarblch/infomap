@@ -72,22 +72,11 @@ void Greedy::move(bool &moved){
       
     }
     
-    // Make best possible move
     if (bestM != fromM) {
-			
-      //Update empty module vector
-      if (mod_members[bestM] == 0) {
-	  Nempty--;
-      }
       
-      if (mod_members[fromM] == node[curNodeId]->members.size()) {
-	  mod_empty[Nempty] = fromM;
-	  Nempty++;
-      }			
-			
-      removeNodeFromModule(fromM, curNode);
-      addNodeToModule(bestM, curNode);		 
-     
+      removeNodeFromModule(fromM, curNode);	
+      addNodeToModule(bestM, curNode);
+      	 
       moved = true;		
     }
 		
@@ -109,6 +98,29 @@ void Greedy::initiate(Node** cpy_node, int N) {
     Nmod = N;
     node = cpy_node;
     initiate();
+}
+
+void Greedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind) {
+      
+    ifstream coms_file(input_coms_path);
+    istringstream ss;
+    string line;
+    string buf;
+    
+    int comId = 0;
+    
+    while(getline(coms_file, line) != NULL){
+      ss.clear();
+      ss.str(line);
+      
+      while(ss >> buf != NULL) {
+	int nodeId = atoi(buf.c_str());
+	buf.clear();
+	node[id2ind[nodeId]]->modIds.insert(comId);
+      }
+      comId++;
+    }
+    
 }
 
 void Greedy::tune(void){
@@ -150,157 +162,86 @@ void Greedy::calibrate(void){
   refresh_code_params();
 }
 
-void Greedy::prepare(bool sort){
-	
+void Greedy::gather_nonEmpty_modules(bool sort){
+
   Nmod = 0;
   vector<int>().swap(modWnode);
-	
+    
+  for (int i = 0; i < Nnode; i++) {
+      if(mod_members[i] > 0) {
+          Nmod++;
+	  modWnode.push_back(i);
+      }
+  }
+  
   if(sort){
-    
-    multimap<double,int> Msize;
-    for(int i=0;i<Nnode;i++){
-      if(mod_members[i] > 0){
-				Nmod++;
-				Msize.insert(make_pair(mod_degree[i],i));
-      }
-    }
-    
-    for(multimap<double,int>::reverse_iterator it = Msize.rbegin(); it != Msize.rend(); it++)
-      modWnode.push_back(it->second);
-    
-  }
-  else{
-    
-    for(int i=0;i<Nnode;i++){
-      if(mod_members[i] > 0){
-				Nmod++;
-				modWnode.push_back(i);
-      }
-    }
-    
-  }
-	
+    Mod_cmp mod_cmp(mod_degree);
+    std::sort(modWnode.begin(), modWnode.end(), mod_cmp);
+  }	
 }
 
 void Greedy::level(bool sort){
   
-  prepare(sort);
+  gather_nonEmpty_modules(sort);
   
   Node** node_tmp = new Node*[Nmod];
+  vector<int> ModId2Ind(Nnode);
   
-  vector<int> nodeInMod(Nnode);
-  for(int i=0;i<Nmod;i++){
-    node_tmp[i] = new Node();
-    node_tmp[i]->index = i;
-    node_tmp[i]->exit = mod_exit[modWnode[i]];
-    node_tmp[i]->degree = mod_degree[modWnode[i]];
-    nodeInMod[modWnode[i]] = i;
+  for (int i = 0; i < Nmod; i++) {
+    node_tmp[i] = create_node_from_module(i);
+    ModId2Ind[modWnode[i]] = i;
   }
   
-  // Calculate weight of links to different modules
-  vector<map<int,double> > wNtoM(Nmod);
-  //  map<int,double> wNtoM[Nmod];
-  map<int,double>::iterator it_M;
-  
-  for(int i=0;i<Nnode;i++){
-		
-    int i_M = nodeInMod[node[i]->index];
+  vector<map<int,double> > wModToMod(Nmod);
+
+  for (int i = 0; i < Nnode; i++) {
+ 
+    int i_M = ModId2Ind[node[i]->index];
     
-    copy(node[i]->members.begin(),node[i]->members.end(),back_inserter(node_tmp[i_M]->members));
+    push_node_members_to_module(node[i], node_tmp[i_M]);
 		
-    int Nlinks = node[i]->links.size(); 
-    for(int j=0;j<Nlinks;j++){
-      int nb = node[i]->links[j].first;
-      int nb_M = nodeInMod[node[nb]->index];
-      double nb_w = node[i]->links[j].second;
-      if (nb != i) {
-				it_M = wNtoM[i_M].find(nb_M);
-				if (it_M != wNtoM[i_M].end())
-					it_M->second += nb_w;
-				else
-					wNtoM[i_M].insert(make_pair(nb_M,nb_w)); 
+    for (link = node[i]->links.begin(); link < node[i]->links.end(); link++) {
+      int nb = link->first;
+      int nb_M = ModId2Ind[node[nb]->index];
+      if (nb != i && i_M != nb_M) {
+	wModToMod[i_M][nb_M] += link->second; 
       }
     }
   }
-  
-  // Create network at new level
-  for(int i=0;i<Nmod;i++){
-    for(it_M = wNtoM[i].begin(); it_M != wNtoM[i].end(); it_M++){
-      if(it_M->first != i){
-				node_tmp[i]->links.push_back(make_pair(it_M->first,it_M->second));
-      }
+
+  for (int i = 0; i < Nmod; i++) {
+    map<int,double>::iterator M_link;
+    for(M_link = wModToMod[i].begin(); M_link != wModToMod[i].end(); M_link++) {
+	node_tmp[i]->links.push_back(make_pair(M_link->first, M_link->second));
     } 
   }
   
-  // Option to move to empty module
   vector<int>().swap(mod_empty);
   Nempty = 0;
-  for(int i=0;i<Nnode;i++){
-    delete node[i];
-  }
-  delete [] node;
+  
+  delete_nodes();
   
   Nnode = Nmod;
   node = node_tmp;
   
   calibrate();
-  
 }
 
 void Greedy::determMove(vector<int> &moveTo){
 	
-  for(int i=0;i<Nnode;i++){
-    int fromM = i;
-    int bestM = moveTo[i];
-    double wfromM = 0.0;
-    double best_weight = 0.0;
-		
-    if(fromM != bestM){
-      int Nlinks = node[i]->links.size();
-      
-      for(int j=0;j<Nlinks;j++){
-				if(node[node[i]->links[j].first]->index == bestM)
-					best_weight += node[i]->links[j].second;
-				else if(node[node[i]->links[j].first]->index == fromM){
-					wfromM += node[i]->links[j].second;
-				}
-      }
-      
-      //Update empty module vector
-      if(mod_members[bestM] == 0){
-				Nempty--;
-      }
-      if(mod_members[fromM] == static_cast<int>(node[i]->members.size())){
-				mod_empty[Nempty] = fromM;
-				Nempty++;
-      }
-			
-      exitDegree -= mod_exit[fromM] + mod_exit[bestM];
-      exit_log_exit -= plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
-      degree_log_degree -= plogp(mod_exit[fromM] + mod_degree[fromM]) + plogp(mod_exit[bestM] + mod_degree[bestM]); 
-      
-      mod_exit[fromM] -= node[i]->exit - 2*wfromM;
-      mod_degree[fromM] -= node[i]->degree;
-      mod_members[fromM] -= node[i]->members.size();
-      mod_exit[bestM] += node[i]->exit - 2*best_weight;
-      mod_degree[bestM] += node[i]->degree;
-      mod_members[bestM] += node[i]->members.size();
-			
-      exitDegree += mod_exit[fromM] + mod_exit[bestM];
-      exit_log_exit += plogp(mod_exit[fromM]) + plogp(mod_exit[bestM]);
-      degree_log_degree += plogp(mod_exit[fromM] + mod_degree[fromM]) + plogp(mod_exit[bestM] + mod_degree[bestM]); 
-      
-      exit = plogp(exitDegree);
-      
-      codeLength = exit - 2.0*exit_log_exit + degree_log_degree - nodeDegree_log_nodeDegree;
-      
-      node[i]->index = bestM;
-			
+  for (int i = 0; i < Nnode; i++) {
+    if (i != moveTo[i]) {		
+      removeNodeFromModule(i, node[i]);	
+      addNodeToModule(moveTo[i], node[i]);
     }
   }
 	
 };
 
+
+void Greedy::push_node_members_to_module(Node* oldNode, Node* module) {
+    copy(oldNode->members.begin(), oldNode->members.end(), back_inserter(module->members));
+}
 
 double Greedy::plogp(double d){
 
