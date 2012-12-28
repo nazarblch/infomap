@@ -12,6 +12,10 @@ void FuzGreedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind)
     
     int comId = 0;
     
+    for (int i = 0; i < Nnode; i++) {
+        node[i]->modIds.clear();
+    }
+    
     while(getline(coms_file, line) != NULL){
       ss.clear();
       ss.str(line);
@@ -24,4 +28,19 @@ void FuzGreedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind)
       comId++;
     }
     
+    Nmod = comId;
+    
+    for (int i = 0; i < Nnode; i++) {
+        node[i]->set_equal_ModsPr();
+    }
+    
+    for(int i = 0 ;i < Nnode; i++){
+       node[i]->refresh_degree();
+    }
+
+    
+    tune();
+    tune();
+    refresh_splited_nodeDegree_log_nodeDegree();
+    tune();
 }

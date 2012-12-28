@@ -14,6 +14,18 @@
 #include <sstream>
 #include <cstring>
 
+template<class T>
+struct Accumurator: std::unary_function<std::pair<int, T>, void> {
+    Accumurator(): totalValue_(0)  {} 
+    void operator()(const std::pair<int, T>& p){
+        totalValue_ += p.second;
+    }
+    T result() const {
+        return totalValue_;
+    }
+    T totalValue_; 
+};
+
 class Node;
 using namespace std;
 
@@ -34,6 +46,23 @@ class Node{
   int index; // the node / module identity
   int global_index;
   
+  void set_ModsPr(map<int, double> new_ModsPr) {
+    modPr.clear();
+    double sum = for_each(new_ModsPr.begin(), new_ModsPr.end(), Accumurator<double>()).result();
+    for (map<int, double>::iterator id_pr = new_ModsPr.begin(); id_pr != new_ModsPr.end(); id_pr++) {
+      if (id_pr->second > 0) {
+	modPr[id_pr->first] = id_pr->second / sum;
+      }
+    }
+  }
+  
+  void set_equal_ModsPr() {
+      modPr.clear();
+      double ModsCount = static_cast<double>(modIds.size());
+      for (set<int>::iterator Mid = modIds.begin(); Mid != modIds.end(); Mid++) {
+	modPr.insert(make_pair(*Mid, 1.0 / ModsCount)); 
+      }
+  }
   
   void refresh_degree() {
     double Mdeg = 0.0;
