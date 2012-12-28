@@ -61,7 +61,7 @@ public:
 	set<int>& i_Mods = node[i]->modIds;
 	int i_ModsCount = i_Mods.size();
 	map<int, double> new_i_ModsPr;
-	double delta_mod_exit = 0.0;
+	map<int, double> delta_mod_exit;
 	
 	for (link = node[i]->links.begin(); link < node[i]->links.end(); link++) {
 	
@@ -76,12 +76,15 @@ public:
 		
 		new_i_ModsPr[*mod_id] += nb_w / i_ModsCount;
 		//mod_degree[*mod_id] += nb_w / i_ModsCount;
-		delta_mod_exit += nb_w;
 		
 	      } else if ( contains(nb_Mods, *mod_id) ) {
 		
 		new_i_ModsPr[*mod_id] += nb_w * node[nb]->modPr[*mod_id];
 		//mod_degree[*mod_id] += nb_w * node[nb]->modPr[*mod_id];
+	      }
+	      
+	      if ( !contains(nb_Mods, *mod_id) ) {
+		delta_mod_exit[*mod_id] += nb_w;
 	      }
 	  
 	  }
@@ -91,7 +94,7 @@ public:
 	
 	map<int, double>::iterator id_pr;
 	for (id_pr = node[i]->modPr.begin(); id_pr != node[i]->modPr.end(); id_pr++) {
-	  mod_exit[id_pr->first] += delta_mod_exit * id_pr->second;
+	  mod_exit[id_pr->first] += delta_mod_exit[id_pr->first] * id_pr->second;
 	  mod_degree[id_pr->first] += node[i]->degree * id_pr->second; 
 	}
 	

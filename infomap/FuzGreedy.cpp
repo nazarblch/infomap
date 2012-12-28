@@ -41,5 +41,6 @@ void FuzGreedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind)
     refresh_nodeDegree_log_nodeDegree();
     tune();
     tune();
+    refresh_splited_nodeDegree_log_nodeDegree();
     tune();
 }
