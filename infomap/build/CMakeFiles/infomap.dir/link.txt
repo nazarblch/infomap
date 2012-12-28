@@ -1,1 +1,1 @@
-/usr/bin/c++   -g    CMakeFiles/infomap.dir/infomap.o CMakeFiles/infomap.dir/GreedyBase.o CMakeFiles/infomap.dir/Greedy.o CMakeFiles/infomap.dir/Node.o CMakeFiles/infomap.dir/GraphLoader.o  -o infomap -rdynamic 
+/usr/bin/c++   -g    CMakeFiles/infomap.dir/FuzGreedy.o CMakeFiles/infomap.dir/infomap.o CMakeFiles/infomap.dir/GreedyBase.o CMakeFiles/infomap.dir/Greedy.o CMakeFiles/infomap.dir/Node.o CMakeFiles/infomap.dir/GraphLoader.o  -o infomap -rdynamic 

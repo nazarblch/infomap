@@ -4,6 +4,7 @@ SET(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
+  "/home/nazar/projects/infomap/FuzGreedy.cpp" "/home/nazar/projects/infomap/build/CMakeFiles/infomap.dir/FuzGreedy.o"
   "/home/nazar/projects/infomap/GraphLoader.cpp" "/home/nazar/projects/infomap/build/CMakeFiles/infomap.dir/GraphLoader.o"
   "/home/nazar/projects/infomap/Greedy.cc" "/home/nazar/projects/infomap/build/CMakeFiles/infomap.dir/Greedy.o"
   "/home/nazar/projects/infomap/GreedyBase.cc" "/home/nazar/projects/infomap/build/CMakeFiles/infomap.dir/GreedyBase.o"

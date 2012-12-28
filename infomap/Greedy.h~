@@ -29,7 +29,7 @@ class Greedy : public GreedyBase{
   virtual void move(bool &moved);
   virtual void determMove(vector<int> &moveTo);
   
-  virtual void initFromFileinitFromFile(const char* input_coms_path, map<int, int>& id2ind);
+  virtual void initFromFile(const char* input_coms_path, map<int, int>& id2ind){};
   
   int Nempty;
   vector<int> mod_empty;
@@ -108,6 +108,23 @@ class Greedy : public GreedyBase{
     }
     
     return node_mod_link_w;
+    
+  }
+  
+  void sumModToModWeights(vector<int>& ModId2Ind, vector<map<int,double> >& wModToMod) {
+
+    for (int i = 0; i < Nnode; i++) {
+  
+      int i_M = ModId2Ind[node[i]->index];
+      	  
+      for (link = node[i]->links.begin(); link < node[i]->links.end(); link++) {
+	int nb = link->first;
+	int nb_M = ModId2Ind[node[nb]->index];
+	if (nb != i && i_M != nb_M) {
+	  wModToMod[i_M][nb_M] += link->second; 
+	}
+      }
+    }
     
   }
   

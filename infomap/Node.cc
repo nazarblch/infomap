@@ -5,6 +5,7 @@ Node::~Node(){
   members.clear();
   links.clear();
   modIds.clear();
+  modPr.clear();
 
 }
 
@@ -19,6 +20,7 @@ Node::Node(int nodenr){
   degree = 0.0;
   members.push_back(nodenr);
   modIds.insert(index);
+  modPr[index] = 1;
 }
 
 Node::Node(int modulenr, int global_modulenr) {
@@ -28,4 +30,5 @@ Node::Node(int modulenr, int global_modulenr) {
    members.push_back(modulenr);
    global_index = global_modulenr;
    modIds.insert(index);
+   modPr[index] = 1;
 }

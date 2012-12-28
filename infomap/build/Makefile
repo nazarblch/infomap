@@ -35,6 +35,9 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
+# The program to use to edit the cache.
+CMAKE_EDIT_COMMAND = /usr/bin/ccmake
+
 # The top-level source directory on which CMake was run.
 CMAKE_SOURCE_DIR = /home/nazar/projects/infomap
 
@@ -46,8 +49,8 @@ CMAKE_BINARY_DIR = /home/nazar/projects/infomap/build
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running interactive CMake command-line interface..."
-	/usr/bin/cmake -i .
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
+	/usr/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -150,6 +153,21 @@ infomap/fast:
 .PHONY : infomap/fast
 
 # target to build an object file
+FuzGreedy.o:
+	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/FuzGreedy.o
+.PHONY : FuzGreedy.o
+
+# target to preprocess a source file
+FuzGreedy.i:
+	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/FuzGreedy.i
+.PHONY : FuzGreedy.i
+
+# target to generate assembly for a file
+FuzGreedy.s:
+	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/FuzGreedy.s
+.PHONY : FuzGreedy.s
+
+# target to build an object file
 GraphLoader.o:
 	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/GraphLoader.o
 .PHONY : GraphLoader.o
@@ -237,6 +255,9 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... FuzGreedy.o"
+	@echo "... FuzGreedy.i"
+	@echo "... FuzGreedy.s"
 	@echo "... GraphLoader.o"
 	@echo "... GraphLoader.i"
 	@echo "... GraphLoader.s"

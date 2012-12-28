@@ -43,6 +43,9 @@ CMAKE_COMMAND = /usr/bin/cmake
 # The command to remove a file.
 RM = /usr/bin/cmake -E remove -f
 
+# The program to use to edit the cache.
+CMAKE_EDIT_COMMAND = /usr/bin/ccmake
+
 # The top-level source directory on which CMake was run.
 CMAKE_SOURCE_DIR = /home/nazar/projects/infomap
 
@@ -56,7 +59,7 @@ CMAKE_BINARY_DIR = /home/nazar/projects/infomap/build
 CMakeFiles/infomap.dir/all:
 	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/depend
 	$(MAKE) -f CMakeFiles/infomap.dir/build.make CMakeFiles/infomap.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/nazar/projects/infomap/build/CMakeFiles  1 2 3 4 5
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/nazar/projects/infomap/build/CMakeFiles  1 2 3 4 5 6
 	@echo "Built target infomap"
 .PHONY : CMakeFiles/infomap.dir/all
 
@@ -66,7 +69,7 @@ all: CMakeFiles/infomap.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/infomap.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/nazar/projects/infomap/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/nazar/projects/infomap/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/infomap.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/nazar/projects/infomap/build/CMakeFiles 0
 .PHONY : CMakeFiles/infomap.dir/rule

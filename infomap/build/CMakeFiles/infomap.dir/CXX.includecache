@@ -6,6 +6,14 @@
 
 #IncludeRegexTransform: 
 
+/home/nazar/projects/infomap/FuzGreedy.cpp
+FuzGreedy.h
+/home/nazar/projects/infomap/FuzGreedy.h
+
+/home/nazar/projects/infomap/FuzGreedy.h
+Greedy.h
+/home/nazar/projects/infomap/Greedy.h
+
 /home/nazar/projects/infomap/GraphLoader.h
 iostream
 -
@@ -97,6 +105,8 @@ cstring
 /home/nazar/projects/infomap/infomap.cc
 infomap.h
 /home/nazar/projects/infomap/infomap.h
+FuzGreedy.h
+/home/nazar/projects/infomap/FuzGreedy.h
 
 /home/nazar/projects/infomap/infomap.h
 cstdio

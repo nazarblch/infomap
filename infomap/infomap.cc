@@ -1,4 +1,5 @@
 #include "infomap.h"
+#include "FuzGreedy.h"
 
 using namespace std;
 using std::cout;
@@ -69,12 +70,13 @@ int main(int argc,char *argv[]){
   
   double uncompressedCodeLength = -greedy->nodeDegree_log_nodeDegree;
   
+  
+  GreedyBase* fuzGreedy;
+  fuzGreedy = new FuzGreedy(R, G.get_N(), G.get_totalDegree(), G.get_nodes());
   string ground_coms(networkName.begin(), networkName.begin() + networkName.find_last_of('/'));
   ground_coms += "/c.dat";
-  greedy->initFromFile(ground_coms.c_str(), G.id2ind);
+  fuzGreedy->initFromFile(ground_coms.c_str(), G.id2ind);
   
-  return 0;
-
   repeated_partition(R, &node, greedy, false, Ntrials);
   int Nmod = greedy->Nnode;
   greedy->print_partition_log();

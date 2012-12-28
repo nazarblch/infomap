@@ -100,28 +100,6 @@ void Greedy::initiate(Node** cpy_node, int N) {
     initiate();
 }
 
-void Greedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind) {
-      
-    ifstream coms_file(input_coms_path);
-    istringstream ss;
-    string line;
-    string buf;
-    
-    int comId = 0;
-    
-    while(getline(coms_file, line) != NULL){
-      ss.clear();
-      ss.str(line);
-      
-      while(ss >> buf != NULL) {
-	int nodeId = atoi(buf.c_str());
-	buf.clear();
-	node[id2ind[nodeId]]->modIds.insert(comId);
-      }
-      comId++;
-    }
-    
-}
 
 void Greedy::tune(void){
   
@@ -195,19 +173,11 @@ void Greedy::level(bool sort){
   vector<map<int,double> > wModToMod(Nmod);
 
   for (int i = 0; i < Nnode; i++) {
- 
     int i_M = ModId2Ind[node[i]->index];
-    
-    push_node_members_to_module(node[i], node_tmp[i_M]);
-		
-    for (link = node[i]->links.begin(); link < node[i]->links.end(); link++) {
-      int nb = link->first;
-      int nb_M = ModId2Ind[node[nb]->index];
-      if (nb != i && i_M != nb_M) {
-	wModToMod[i_M][nb_M] += link->second; 
-      }
-    }
+    push_node_members_to_module(node[i], node_tmp[i_M]);		
   }
+  
+  sumModToModWeights(ModId2Ind, wModToMod);
 
   for (int i = 0; i < Nmod; i++) {
     map<int,double>::iterator M_link;

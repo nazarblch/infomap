@@ -27,6 +27,7 @@ class Node{
   vector<int> members; // If module, lists member nodes in module
   vector<pair<int,double> > links; // List of identities and link weight of connected nodes/modules  
   set<int> modIds;
+  map<int, double> modPr;
   
   double exit; // total weight of links to other nodes / modules
   double degree; // total degree of node / module
