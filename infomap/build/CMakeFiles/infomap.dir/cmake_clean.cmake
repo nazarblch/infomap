@@ -1,4 +1,5 @@
 FILE(REMOVE_RECURSE
+  "CMakeFiles/infomap.dir/FuzGreedy.o"
   "CMakeFiles/infomap.dir/infomap.o"
   "CMakeFiles/infomap.dir/GreedyBase.o"
   "CMakeFiles/infomap.dir/Greedy.o"
