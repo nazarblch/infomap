@@ -56,12 +56,29 @@ class Node{
     }
   }
   
+  bool containsMod(int modId){
+    return (modIds.find(modId) != modIds.end());
+  }
+  
   void set_equal_ModsPr() {
       modPr.clear();
       double ModsCount = static_cast<double>(modIds.size());
       for (set<int>::iterator Mid = modIds.begin(); Mid != modIds.end(); Mid++) {
 	modPr.insert(make_pair(*Mid, 1.0 / ModsCount)); 
       }
+  }
+  
+  void add_parent_module(int modId) {
+    modIds.insert(modId);
+    set_equal_ModsPr();
+  }
+  
+  void del_parent_module(int modId) {
+    if (modIds.find(modId) == modIds.end()) {
+      cout << "try to del non parent module";
+    }
+    modIds.erase(modIds.find(modId));
+    set_equal_ModsPr();
   }
   
   void refresh_degree() {
@@ -123,7 +140,7 @@ class Node{
     }
     
     set<int>::iterator it_mem = sub_mem.begin();  
-    int *sub_renumber = new int[Nnode];
+    map<int, int> sub_renumber;
                 
     for(int j = 0; j < sub_Nnode; j++){
             
@@ -147,12 +164,14 @@ class Node{
        }
     }
     
-    delete [] sub_renumber;
+    sub_renumber.clear();
+    sub_mem.clear();
     
     return sub_node; 
     
   }
-
+  
+ 
  
  protected:
    

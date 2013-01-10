@@ -15,8 +15,7 @@ void Graph::read_pajek_net(char* input_net_path) {
     if(getline(net,line) == NULL){
       cout << "the network file is not in Pajek format...exiting" << endl;
       exit(-1);
-    }
-    else{
+    } else {
       ss.clear();
       ss.str(line);
       ss >> buf;
@@ -202,7 +201,67 @@ void Graph::read_edges_net(char* input_net_path) {
 }
 
 
+Graph Graph::build_line_graph() {
+  
+  Graph LineG;
+  LineG.link2ind.resize(Nnode);
+  LineG.linkId2Pair.resize(Nlinks);
+  
+  links_for_mod_sim.resize(Nnode);
+  
+  for (int nodeId = 0; nodeId < Nnode; nodeId++) {
+    vector<pair<int, double> >& node_links =  nodes[nodeId]->links;
+    
+    for (vector<pair<int, double> >::iterator link1 = node_links.begin(); link1 < node_links.end(); link1++) {
+      
+      int nbId1 = link1->first;
+            
+      for (vector<pair<int, double> >::iterator link2 = link1 - 1; link2 > node_links.begin(); link2--) {
+      
+	int nbId2 = link2->first;
+	if (nbId1 < nbId2) {
+	  links_for_mod_sim[nbId1][nbId2] += 1;
+	  links_for_mod_sim[nbId2][nbId1] += 1;
+	}
+ 
+      }
+      
+    }
+  }
+  
+  for (int nodeId = 0; nodeId < Nnode; nodeId++) {
+    vector<pair<int, double> >& node_links =  nodes[nodeId]->links;
+    
+    for (vector<pair<int, double> >::iterator link1 = node_links.begin(); link1 < node_links.end(); link1++) {
+      
+      int nbId1 = link1->first;
+      int linkId1 = LineG.insert_link_as_node(nodeId, nbId1);
+            
+      for (vector<pair<int, double> >::iterator link2 = link1 - 1; link2 > node_links.begin(); link2--) {
+      
+	int nbId2 = link2->first;
+	int linkId2 = LineG.link2ind[nodeId][nbId2];
+        double link_link_w = links_mod_sim(nodeId, nbId1, nbId2);
+	
+	if (link_link_w > 0) {
+	  LineG.Links[linkId1][linkId2] = link_link_w;
+	  LineG.Nlinks++; 
+	}
+    
+      }
+      
+    }
+  }
+  
+  return LineG;
+  
+}
+
+
+
 void Graph::init_nodes() {
+  
+  cout << "line nodes count" << Nlinks << endl;
   
   nodes = new Node*[Nnode];
   degree.resize(Nnode);

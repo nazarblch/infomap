@@ -42,4 +42,144 @@ void FuzGreedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind)
     tune();
     tune();
     tune();
+
+    refresh_splited_nodeDegree_log_nodeDegree();
+    tune();
+}
+
+
+
+void FuzGreedy::move(bool &moved){
+  
+  //check_invariants();
+
+  vector<int> randomOrder = randomPermutation(Nnode);
+  
+  for(int k = 0; k < Nnode; k++){
+    
+    int curNodeId = randomOrder[k]; 
+    Node* curNode = node[curNodeId];
+    
+    NodeModLinks nm_links;
+    calcWtoNbMods(curNode, nm_links);
+       	 
+    vector<pair<int, double> > wToClusterVec(nm_links.wToCluster.begin(), nm_links.wToCluster.end());
+    
+    // Option to move to empty module (if node not already alone)
+    if(Nempty > 0 && nm_links.wToCluster.find(mod_empty[Nempty-1]) == nm_links.wToCluster.end()) {
+        wToClusterVec.push_back(make_pair(mod_empty[Nempty-1], 0.0));
+	nm_links.wToClusterWithPr[mod_empty[Nempty-1]] = 0.0;
+    }
+    
+    wToClusterVec = randomPermutation(wToClusterVec);
+
+    double best_delta = 0.0;
+    int fromM = -1;
+    int bestM = -1;
+    
+    
+    
+    // Find the move that minimizes the description length
+    for (vector<pair<int, double> >::iterator ind_w = wToClusterVec.begin(); ind_w < wToClusterVec.end(); ind_w++) {
+      
+      int toM = ind_w->first;
+      double wtoMwithPr = nm_links.wToClusterWithPr[toM];
+      
+      if(curNode->modIds.find(toM) != curNode->modIds.end()) continue;
+	
+      double deltaLAdd = deltaCodeLengthAdd(curNodeId, toM, nm_links);
+      //check_invariants();
+      double deltaLSwap = deltaCodeLengthSwap(curNodeId, toM, nm_links, fromM);
+      
+      
+      if(min(deltaLAdd, deltaLSwap) < best_delta){
+          bestM = toM;
+          best_delta = min(deltaLAdd, deltaLSwap);  
+	  
+	  if (deltaLAdd < deltaLSwap) {
+	    fromM = -1;
+	  }
+	  
+	  moved = true;
+      }
+      
+    }
+    
+    if (bestM != -1) {
+      addNodeToModule(bestM, curNode, nm_links);
+      
+      if (fromM != -1) {
+	  removeNodeFromModule(fromM, curNode, nm_links);
+      }  		
+    }
+    
+    //tune();
+		
+  }	
+}
+
+double FuzGreedy::multPlogP(double deg, int count) {
+  
+  double res = 0.0;
+  
+  for (int i = 0; i < count; i++) {
+    res += plogp(deg/count);
+  }
+  
+  return res;
+  
+}
+
+double FuzGreedy::deltaCodeLengthAdd(int curNodeId, int toM, NodeModLinks& nm_links) {
+  
+   Node* curNode = node[curNodeId];
+   
+   addNodeToModule(toM, curNode, nm_links);
+  
+   double newL = codeLength;
+   
+   removeNodeFromModule(toM, curNode, nm_links);
+   
+   return newL - codeLength;
+}
+
+
+double FuzGreedy::deltaCodeLengthDel(int curNodeId, int toM, NodeModLinks& nm_links) {
+   
+   Node* curNode = node[curNodeId];
+   
+   removeNodeFromModule(toM, curNode, nm_links);
+   
+   double newL = codeLength;
+   
+   addNodeToModule(toM, curNode, nm_links);
+   
+   return newL - codeLength;
+}
+
+double FuzGreedy::deltaCodeLengthSwap(int curNodeId, int toM, NodeModLinks& nm_links, int& fromM) {
+   
+   Node* curNode = node[curNodeId];
+   set<int> parentModIds = node[curNodeId]->modIds;
+   
+   double LBeforeAdd = codeLength;
+   
+   addNodeToModule(toM, curNode, nm_links);
+  
+   double deltaLAfterAdd = codeLength - LBeforeAdd;
+   
+   double deltaLAfterSwapBest = 10;
+   
+   for (set<int>::iterator mod_id = parentModIds.begin(); mod_id != parentModIds.end(); mod_id++) {
+      double deltaLAfterSwap = deltaCodeLengthDel(curNodeId, *mod_id, nm_links);
+      
+      if (deltaLAfterSwap < deltaLAfterSwapBest) {
+	deltaLAfterSwapBest = deltaLAfterSwap;
+	fromM = *mod_id;
+      }
+   }
+   
+   removeNodeFromModule(toM, curNode, nm_links);
+   
+   return deltaLAfterSwapBest + deltaLAfterAdd;
 }
