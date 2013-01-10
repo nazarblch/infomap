@@ -38,12 +38,12 @@ void FuzGreedy::initFromFile(const char* input_coms_path, map<int, int>& id2ind)
        node[i]->refresh_degree();
     }
 
-    refresh_nodeDegree_log_nodeDegree();
+   
     tune();
     tune();
     tune();
 
-    refresh_splited_nodeDegree_log_nodeDegree();
+   
     tune();
 }
 
@@ -183,4 +183,46 @@ double FuzGreedy::deltaCodeLengthSwap(int curNodeId, int toM, NodeModLinks& nm_l
    removeNodeFromModule(toM, curNode, nm_links);
    
    return deltaLAfterSwapBest + deltaLAfterAdd;
+}
+
+
+void FuzGreedy::level(bool sort) {
+  
+  gather_nonEmpty_modules(sort);
+  
+  Node** node_tmp = new Node*[Nmod];
+  vector<int> ModId2Ind(Nnode);
+  
+  for (int i = 0; i < Nmod; i++) {
+    node_tmp[i] = create_node_from_module(i);
+    ModId2Ind[modWnode[i]] = i;
+  }
+  
+  vector<map<int,double> > wModToMod(Nmod);
+
+  for (int i = 0; i < Nnode; i++) {
+    set<int>& parentModIds = node[i]->modIds;
+    for (set<int>::iterator mod_id = parentModIds.begin(); mod_id != parentModIds.end(); mod_id++) {
+      push_node_members_to_module(node[i], node_tmp[*mod_id]);
+    }		
+  }
+  
+  sumModToModWeights(ModId2Ind, wModToMod);
+
+  for (int i = 0; i < Nmod; i++) {
+    map<int,double>::iterator M_link;
+    for(M_link = wModToMod[i].begin(); M_link != wModToMod[i].end(); M_link++) {
+	node_tmp[i]->links.push_back(make_pair(M_link->first, M_link->second));
+    } 
+  }
+  
+  vector<int>().swap(mod_empty);
+  Nempty = 0;
+  
+  delete_nodes();
+  
+  Nnode = Nmod;
+  node = node_tmp;
+  
+  calibrate();
 }

@@ -25,6 +25,8 @@ class GreedyBase{
   void print_partition_log();
   virtual void initFromFile(const char* input_coms_path,  map<int, int>& id2ind){};
   
+  virtual void print_map_in_communityPerLine_format(string networkName,  string* & nodeNames){};
+  
   int Nmod;
   int Nnode;
  

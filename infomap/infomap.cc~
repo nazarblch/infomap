@@ -22,7 +22,7 @@ std::vector<string> split(const string& inputString, const char seperator) {
     return string_parts;
 }
 
-void print_nmi(string argv_0, string networkName);
+void print_nmi(string argv_0, string networkName, string coms_tag);
 void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent);
 void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent,int Ntrials);
 
@@ -57,21 +57,15 @@ int main(int argc,char *argv[]){
   fuzGreedy = new FuzGreedy(R, G.get_N(), G.get_totalDegree(), G.get_nodes());
   fuzGreedy->initiate();
   
-  bool fmoved;
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
-  fuzGreedy->move(fmoved);
+  bool fmoved = true;
+  
+  while(fmoved) {
+    fmoved = false;
+    fuzGreedy->move(fmoved);
+  }
+  
+  fuzGreedy->print_map_in_communityPerLine_format(networkName);
+  print_nmi(string(argv[0]), networkName, "fcoms");
 
   
     
@@ -114,10 +108,10 @@ int main(int argc,char *argv[]){
   delete greedy;
   delete R;
   
-  print_nmi(string(argv[0]), networkName);
+  print_nmi(string(argv[0]), networkName, "coms");
 }
 
-void print_nmi(string argv_0, string networkName) {
+void print_nmi(string argv_0, string networkName, string coms_tag) {
   string mutual_path = "";
   vector<string> mutual_path_parts = split(string(argv_0), '/');
   for(int i = 0; i < mutual_path_parts.size() - 3; i++) {
@@ -127,7 +121,7 @@ void print_nmi(string argv_0, string networkName) {
   
   string ground_coms(networkName.begin(), networkName.begin() + networkName.find_last_of('/'));
   ground_coms += "/c.dat";
-  string res_coms = networkName + ".coms";
+  string res_coms = networkName + "." + coms_tag;
   
   execl(mutual_path.c_str(), mutual_path.c_str(), ground_coms.c_str(), res_coms.c_str(), (char *) 0);
 }

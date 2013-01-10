@@ -23,7 +23,9 @@ class GreedyBase{
   virtual void move(bool &moved){};
   virtual void determMove(vector<int> &moveTo){};
   void print_partition_log();
-  virtual void initFromFileinitFromFile(const char* input_coms_path,  map<int, int>& id2ind){};
+  virtual void initFromFile(const char* input_coms_path,  map<int, int>& id2ind){};
+  
+  virtual void print_map_in_communityPerLine_format(string networkName){};
   
   int Nmod;
   int Nnode;

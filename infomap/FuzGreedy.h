@@ -37,6 +37,40 @@ public:
       
     }
     
+    virtual void level(bool sort);
+    
+    virtual void print_map_in_communityPerLine_format(string networkName, string* & nodeNames) {
+      ostringstream oss;
+      ofstream outfile;
+      
+      oss.str("");
+      oss << networkName << ".fcoms";
+      outfile.open(oss.str().c_str());
+      
+      vector< vector<int> > fcoms(Nmod);
+      
+      for (int i = 0; i < Nnode; i++) {
+	set<int>& i_Mods = node[i]->modIds;  
+	
+	for (set<int>::iterator mod_id = i_Mods.begin(); mod_id != i_Mods.end(); mod_id++) {
+	  fcoms[*mod_id].push_back(i);
+	}
+      }
+      
+      for (int ci = 0; ci < Nmod; ci++) {
+	 
+	if (fcoms[ci].size() > 0) {
+	  for (int pos = 0; pos < fcoms[ci].size(); pos++) {
+	    outfile << nodeNames[fcoms[ci][pos]] << " ";
+	  }
+	  outfile << endl;
+	}
+      }
+      
+      outfile.close();
+    
+    }
+    
     void refresh_splited_nodeDegree_log_nodeDegree () {
       nodeDegree_log_nodeDegree = 0.0;
       for(int i = 0; i < Nnode; i++){
@@ -161,7 +195,7 @@ public:
       pasteModuleCode(toM);
       
       newNode->add_parent_module(toM);
-      //mod_members[toM] += newNode->members.size();
+      mod_members[toM] += newNode->members.size();
       
     }
   
@@ -172,10 +206,10 @@ public:
 	return;
       }
       
-//       if(mod_members[toM] == newNode->members.size()) {
-// 	  mod_empty[Nempty] = toM;
-// 	  Nempty++;
-//       }
+      if(mod_members[toM] == newNode->members.size()) {
+ 	  mod_empty[Nempty] = toM;
+ 	  Nempty++;
+      }
     
       double old_deg_outside_mods = nm_links.deg_outside_mods;
       double new_deg_outside_mods = old_deg_outside_mods + nm_links.wToClusterDelta[toM];
@@ -213,7 +247,7 @@ public:
       pasteModuleCode(toM);
       
       newNode->del_parent_module(toM);
-      //mod_members[toM] -= newNode->members.size();
+      mod_members[toM] -= newNode->members.size();
       
 
     }
@@ -266,6 +300,7 @@ public:
 	for (id_pr = node[i]->modPr.begin(); id_pr != node[i]->modPr.end(); id_pr++) {
 	  mod_exit[id_pr->first] += delta_mod_exit[id_pr->first] * id_pr->second;
 	  nodeDegree_log_nodeDegree += plogp(delta_mod_deg[id_pr->first]);
+	  mod_members[id_pr->first] ++;
 	}
 	
       }

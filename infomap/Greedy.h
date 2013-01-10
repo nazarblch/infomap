@@ -62,6 +62,7 @@ class Greedy : public GreedyBase{
      newNode->index = modPos;
      newNode->exit = mod_exit[modWnode[modPos]];
      newNode->degree = mod_degree[modWnode[modPos]];
+     newNode->add_parent_module(modPos);
 
      return newNode;
   }
