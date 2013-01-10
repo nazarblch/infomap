@@ -48,17 +48,21 @@ int main(int argc,char *argv[]){
   G.init_nodes();
   G.delele_links();
   G.print_read_log();
-   
-  int Nnode = G.get_N();
-  string *nodeNames = G.get_nodeNames();
-  int Nlinks = G.get_M();
-  int NdoubleLinks = G.get_NdoubleLinks();
-  map<int,map<int,double> >& Links = G.get_links(); 
-  double totalDegree = G.get_totalDegree();
-  vector<double> degree = G.get_degree();
+ 
   Node ** & node = G.get_nodes();
   
+  GreedyBase* fuzGreedy;
+  Node **fcpy_node = fuzGreedy->copy_nodes(&node, G.get_N());
   
+  fuzGreedy = new FuzGreedy(R, G.get_N(), G.get_totalDegree(), G.get_nodes());
+  fuzGreedy->initiate();
+  
+  bool fmoved;
+  fuzGreedy->move(fmoved);
+
+
+  
+    
   /////////// Partition network ////////////////////
 
   cout << "Now partition the network:" << endl;
@@ -70,12 +74,6 @@ int main(int argc,char *argv[]){
   
   double uncompressedCodeLength = -greedy->nodeDegree_log_nodeDegree;
   
-  
-  GreedyBase* fuzGreedy;
-  fuzGreedy = new FuzGreedy(R, G.get_N(), G.get_totalDegree(), G.get_nodes());
-  string ground_coms(networkName.begin(), networkName.begin() + networkName.find_last_of('/'));
-  ground_coms += "/c.dat";
-  fuzGreedy->initFromFile(ground_coms.c_str(), G.id2ind);
   
   repeated_partition(R, &node, greedy, false, Ntrials);
   int Nmod = greedy->Nnode;
