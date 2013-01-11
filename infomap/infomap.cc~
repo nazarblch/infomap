@@ -64,7 +64,7 @@ int main(int argc,char *argv[]){
     fuzGreedy->move(fmoved);
   }
   
-  fuzGreedy->print_map_in_communityPerLine_format(networkName);
+  fuzGreedy->print_map_in_communityPerLine_format(networkName, G.get_nodeNames());
   print_nmi(string(argv[0]), networkName, "fcoms");
 
   

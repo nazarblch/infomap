@@ -21,7 +21,7 @@ Name=bn
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=7 /home/nazar/projects/networks/infotest.net 5
+Arguments=7 /home/nazar/projects/networks/bn.net 5
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=default
