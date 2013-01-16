@@ -43,6 +43,8 @@ class GreedyBase{
   double codeLength;
   double shortestCodeLength;
   
+  vector<int> mod_members;
+  
   Node **node;
   
   Node ** copy_nodes(Node ***node, int N) {
@@ -142,6 +144,29 @@ class GreedyBase{
       if(!silent) {
         cout << Nloops << " " << flush;
       }
+  }
+  
+  struct Edge{
+    int n1;
+    int n2;
+    int w;
+  };
+  
+  vector< Edge > calc_common_nodes_mod_measure() {
+    map< map<int, double> > mm_links;
+    
+    for (int i = 0; i < Nnode; i++) {
+      for (set<int>::iterator mod_id = node[i]->modIds.begin(); mod_id != node[i]->modIds.end(); mod_id++) {
+	for (set<int>::iterator mod_id_next = mod_id + 1; mod_id_next != node[i]->modIds.end(); mod_id_next++) {
+	  double min_mod_size = static_cast<double>(min(mod_members[*mod_id], mod_members[*mod_id_next]));  
+	  res[*mod_id_next][*mod_id] += 1.0 / min_mod_size;
+	  res[*mod_id_next][*mod_id] += 1.0 / min_mod_size;
+        }
+      }
+    }
+  }
+  
+  void unite_mods() {
   }
  
  

@@ -36,7 +36,6 @@ class Greedy : public GreedyBase{
 
   vector<double> mod_exit;
   vector<double> mod_degree;
-  vector<int> mod_members;
   
   struct Mod_cmp {
       vector<double>* val;
