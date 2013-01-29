@@ -1,0 +1,18 @@
+				{%for syn in  db_syn%}
+                    <div id="" class="syn selectable">
+                        {% for word in syn.split %}
+                            <span>{{ word }}</span>
+                        {% endfor %}
+
+                    </div>
+					
+				{%endfor%}
+				{%for syn in  ya_syn%}
+                    <div id="" class="syn selectable">
+                        {% for word in syn.split %}
+                            <span>{{ word }}</span>
+                        {% endfor %}
+
+                    </div>
+					
+				{%endfor%}

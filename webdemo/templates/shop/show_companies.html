@@ -1,0 +1,45 @@
+<div id="sort_order">
+		Модели товаров отсоктированы по:
+		{% for f in fparams %}
+			{{f}}&nbsp;
+		{% endfor %}
+		<br>
+</div>
+
+<div class="pr_blocks">
+		
+		{% for bl in pr_blocks %}
+
+            <div class="pr_block_header">
+			{% if "category" in fparams %}
+                {{bl.category}}&nbsp;
+			{% endif %}
+			{% if "vendor" in fparams %}
+                {{bl.vendor}}&nbsp;
+			{% endif %}
+			{% if "typePrefix" in fparams %}
+                {{bl.typePrefix}}&nbsp;
+			{% endif %}
+            </div>
+
+            --------------------<br>
+               
+			<div class="pr_block">
+                <form action="" method="post" name="company_form" >{% csrf_token %}
+
+                {% for pr in bl.products %}
+                    <div class="pr_row" id="{{pr.id}}">
+                        <input type="checkbox" name="id" value="{{pr.id}}" {% if  pr.available != 0 %} checked {% endif %} />
+                        <input type="text" class="pr_model" name="model{{pr.id}}" value="{{pr.model}}" />
+                        <input type="text" class="pr_typePrefix"  name="typePrefix{{pr.id}}" value="{{pr.typePrefix}}" style="width:130px;" />
+                        <input type="text" class="pr_price"  name="price{{pr.id}}" value="{{pr.price}}" style="width:70px;" />
+                    </div>
+                {% endfor %}
+
+                </form>
+			</div>
+
+			
+		{% endfor %}
+	
+</div>

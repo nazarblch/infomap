@@ -1,0 +1,159 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+
+    <meta property="fb:admins" content="100002162140926" />
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.2.min.js" ></script>
+{#    <script type="text/javascript" src="http://connect.facebook.net/en_US/all.js" ></script>#}
+</head>
+
+<body >
+<div id="fb-root"></div>
+<script type="text/javascript">
+
+
+    (function() {
+        var e = document.createElement('script');
+        e.type = 'text/javascript';
+        e.src = document.location.protocol +
+                '//connect.facebook.net/en_US/all.js';
+        e.async = true;
+        document.getElementById('fb-root').appendChild(e);
+
+
+
+    }());
+
+    window.fbAsyncInit = function() {
+        FB.init({appId: '216066421819165', status: true, cookie: true, xfbml: true});
+
+        FB.Event.subscribe('auth.login', function(response) {
+            login();
+        });
+        FB.Event.subscribe('auth.logout', function(response) {
+            logout();
+        });
+
+        FB.getLoginStatus(function(response) {
+            if (response.session) {
+                greet();
+            }
+        });
+    };
+
+
+
+
+    function fb_login(){
+        FB.login(function(response) {
+            if (response.authResponse) {
+                console.log('Welcome!  Fetching your information.... ');
+                FB.api('/me', function(response) {
+                    console.log('Good to see you, ' + response.name + '.');
+                });
+                setStatus();
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        }, {scope: 'email,user_birthday,status_update,publish_stream'});
+
+    }
+
+
+
+    function login(){
+        FB.api('/me', function(response) {
+            //alert('Вы удачно зарегистрировались, '+response.name+"!");
+        });
+    }
+    function logout(){
+        //alert('Вы удачно вышли из Facebook!');
+    }
+    function greet(){
+        FB.api('/me', function(response) {
+          //  alert('Добро пожаловать, '+response.name+"!");
+        });
+    }
+
+
+    function del_post(id){
+        FB.api(
+                {
+                    method: 'stream.remove',
+                    post_id: id
+
+                } ,
+                function(response) {
+
+                           alert(response.toString());
+
+        }
+        );
+    }
+
+
+    function get_stream(){
+        FB.api('/me?fields=posts', function(response) {
+              for(var i = 0; i<response.posts.data.length; i++){
+                  del_post(response.posts.data[i].id);
+              }
+        });
+
+    }
+
+
+    function setStatus(){
+
+
+
+        FB.getLoginStatus(function(response) {
+                new_status = document.getElementById('status').value;
+
+
+
+                if (response.status === 'connected') {
+
+
+
+                    FB.api(
+                        {
+                            method: 'links.post',
+                            url: "http://yandex.com",
+                            comment: new_status,
+                            image:"http://cache2.allpostersimages.com/p/MED/40/4045/AM4LF00Z/posterler/pierre-auguste-renoir-portrait-of-mademoiselle-romaine-lancaux.jpg"
+
+
+                },
+                        function(response) {
+
+                                alert(response.toString());
+
+                        }
+                );
+                }else{
+                    fb_login();
+                }
+        });
+    }
+</script>
+<p align="center">
+    <fb:login-button id="login" autologoutlink='true' perms='email,user_birthday,status_update,publish_stream'>
+    </fb:login-button>
+</p>
+
+<input id="status" size="60" type="text" value="Узнай темную сотону силы" />
+<br/><a href='#' onclick='setStatus(); return false;'>Разместить</a>
+
+
+<br/><a href='#' onclick='get_stream(); return false;'>posts del</a>
+<br/><a href='#' onclick='del_post(); return false;'>del</a>
+
+
+
+<p align="center">
+    <fb:like send="false"  layout="button_count" width="450" show_faces="true"></fb:like>
+</p>
+
+</body>
+</html>

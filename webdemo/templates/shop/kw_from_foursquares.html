@@ -1,0 +1,178 @@
+{% extends "base/base.html" %}
+{% load model %}
+
+
+{% block head %}
+
+    <link  rel="stylesheet" href="/media/css/foursquare.css" />
+
+    <script type="text/javascript" src="/media/js/jquery.json-2.3.min.js"></script>
+
+    <script  type="text/javascript">
+
+        var foursquares_dict = {};
+
+        var next_4sqs_avaliable = false;
+
+        function doc_re_ready(){
+
+
+            foursquares_dict = {};
+            next_4sqs_avaliable = false;
+
+            $("#4sq").find(".box_for_4sq").each(function(e){
+
+                var gr_num = $(this).attr("gr_num");
+                var patt_key = $(this).attr("patt_key");
+
+                if( !foursquares_dict[gr_num]) foursquares_dict[gr_num] = {};
+
+                foursquares_dict[gr_num][patt_key] = {};
+
+            });
+
+
+            var arr = {};
+
+            arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+
+
+            $.ajax({
+                url:"/shop/wordstat_next/",
+                type: "POST",
+                data: arr,
+                dataType: "text",
+
+                success: function(data) {
+
+                    if (parseInt(data) == 0) show_alert("Wordstat next finished", "New phrases have been loaded");
+                    if (parseInt(data) == -1) show_alert("Wordstat next finished", "New phrases haven't been found");
+
+
+                }
+            }).complete(function(){
+
+                next_4sqs_avaliable = true;
+                //alert(next_4sqs_avaliable);
+
+            });
+
+        }
+
+
+        $("#next_cv").live("click", function(e){
+
+            if (!next_4sqs_avaliable){
+                show_alert("Wait for wordstat completion");
+                return;
+            }
+
+            var arr = {};
+
+            arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+            arr['4sqs'] = $.toJSON(foursquares_dict);
+
+            $.ajax({
+                url:"/shop/foursquares_save/",
+                type: "POST",
+                data: arr,
+                dataType: "text",
+
+                success: function(data) {
+
+                    document.location.href = "/shop/foursquares";
+                }
+            });
+
+        });
+
+
+
+        $("#next_4sqs").live("click", function(e){
+
+            if (!next_4sqs_avaliable){
+                show_alert("Wait for wordstat completion");
+                return;
+            }
+
+            var arr = {};
+
+            arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+            arr['4sqs'] = $.toJSON(foursquares_dict);
+
+
+
+
+            $.ajax({
+                url:"/shop/foursquare_next/",
+                type: "POST",
+                data: arr,
+                dataType: "text",
+
+                success: function(data) {
+
+                    $("#4sq").html(data);
+                    doc_re_ready();
+
+                }
+            });
+
+
+
+        });
+
+
+
+        $(".sq").find(".cb").live("click", function(e){
+
+            var _4sq = $(this).parents(".box_for_4sq");
+            var sq = $(this).parents(".sq");
+
+            var gr_num = _4sq.attr("gr_num");
+            var patt_key = _4sq.attr("patt_key");
+            var kw_patt = $(this).attr("kw_patt");
+
+            if (! foursquares_dict[gr_num][patt_key]) show_alert(gr_num+' '+patt_key, "foursquares_dict hasn't required keys");
+
+            foursquares_dict[gr_num][patt_key][kw_patt] = -1;
+
+
+            if (sq.find(".layer3").length > 1){
+                $(this).parents(".layer3").remove();
+            }else{
+                sq.remove();
+            }
+
+
+
+        });
+
+
+
+    </script>
+
+{% endblock %}
+
+{% block document_ready %}
+
+    doc_re_ready();
+
+{% endblock %}
+
+{% block content %}
+
+    <div style="width: 100%; height: auto;">
+    <ul id="4sq">
+
+    {% include 'shop/_foursq_next.html' %}
+
+    </ul>
+    </div>
+    <br>
+
+    <input type="button" id="next_4sqs" value="Следующие ключевые слова">
+    <br>
+    <br>
+    <input type="button" id="next_cv" value="Следующие категория-производитель">
+
+{% endblock %}

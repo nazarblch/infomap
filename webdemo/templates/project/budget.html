@@ -1,0 +1,112 @@
+
+{% extends "base/base.html" %}
+
+
+{% block head %}
+
+    <link rel="stylesheet" href="/media/css/ui-lightness/jquery-ui-1.8.21.custom.css">
+    <link rel="stylesheet" href="/media/css/project_style.css">
+    <script src="/media/js/jquery-ui-1.8.21.custom.min.js"></script>
+    <script src="/media/js/sliders.js"></script>
+
+
+    <script>
+
+        var show_prods_num = 3;
+
+
+        function document_re_ready(gr_id){
+
+            var grs = typeof gr_id !== 'undefined' ? $("#"+gr_id+".price_group") : $(".price_group");
+
+            grs.find(".price_group_item_container").find("tr.product_line:gt("+show_prods_num+")").hide();
+
+            grs.each(function(obj){
+
+                var cur = parseInt($(this).find(".max_price_input").attr("initvalue"));
+                var max = parseInt({{ kwnet.budget }});
+
+                var slider_el = insert_slider(".slider-range-min", ".amount", 0, max, cur, $(this));
+
+
+            });
+
+
+        }
+
+
+        $(".slider-range-min").live( "slidechange", function(event, ui) {
+
+            
+
+            var arr = {};
+            var gr = $(this).parents(".price_group");
+
+            arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+            arr['gr_id'] = gr.attr("id");
+            arr['budget'] = ui.value;
+
+
+            $.post("/project/optimize_group/",
+                    arr,
+                    function(data) {
+                        gr.html(data);
+                        document_re_ready(gr.attr("id"));
+                    }
+            );
+
+        });
+
+
+        $(".hide_show").live("click", function(e){
+
+            $(this).parents(".price_group_item_container").find("tr.product_line:gt("+show_prods_num+")").toggle();
+
+        });
+
+        var product_obj = null;
+
+        $(".product_obj").live("click", function(e){
+
+            var info_obj = $(this).find("[class ^= 'product_info']");
+
+            info_obj.toggleClass("product_info");
+
+            $(this).toggleClass("product_obj_click");
+
+            if (product_obj != null && product_obj != this && $(product_obj).hasClass("product_obj_click")){
+                $(product_obj).click();
+            }
+
+            product_obj = this;
+
+        });
+
+    </script>
+
+{% endblock %}
+
+{% block document_ready %}
+    document_re_ready();
+{% endblock %}
+
+
+{% block content %}
+
+<form action="#" method="post" style="margin: 20px;">
+    <input type="text" name="budget" value="{{ kwnet.budget }}">
+    <input type="submit" name="reload" value="Пересчитать">
+    <input type="submit" name="accept" value="Утвердить">
+</form>
+
+{% for group in kwnet.pr_groups %}
+    <div class="price_group" id="{{ forloop.counter0 }}">
+
+        {% include "project/_budget_kw_group.html" %}
+
+    </div>
+
+{% endfor %}
+
+{% endblock %}
+

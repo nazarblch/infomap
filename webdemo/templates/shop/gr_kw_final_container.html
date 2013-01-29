@@ -1,0 +1,25 @@
+{% load iterations %}
+
+
+<div id="final_kw" style=" float:right; margin-right: 200px;  font-size: 10px; margin-bottom: 50px;" >
+
+	{% math 0 "$1" as gr_id %}
+	{% for gr in Mg %}
+	    <br>
+	    <div style="color:green;">{{gr_id}}: {{gr.pattern}}</div>
+	    <div id="{{gr_id}}" class="patt_popul">{{gr.pospopularity}}</div>
+		<div id="{{gr_id}}" class="model_syns" >
+			{% for model in gr.models %}
+				<div id="{{model.id}}" class="model_container">
+				<div id="{{model.id}}" class="model_name model_syn">{{model}}</div>
+				{% for kwphr in model.kwphr %}
+					<div id="" class="model_syn"><span class="model_syn_text">{{kwphr}}</span></div>
+				{% endfor %}
+				</div>
+			{% endfor %}
+		</div>
+	    
+		{% math gr_id "$1+1" as gr_id %}
+	{% endfor %}
+
+</div>

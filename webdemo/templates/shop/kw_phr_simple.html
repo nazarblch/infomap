@@ -1,0 +1,372 @@
+{% extends "base/base.html" %}
+
+{% load iterations %}
+
+{% block head %}
+
+
+<script src="/media/js/jquery.form.js" type="text/javascript"></script>
+<script src="/media/js/jquery-ui.js" type="text/javascript"></script>
+<link  rel="stylesheet" href="/media/css/shop_style.css" />
+
+
+
+<script type="text/javascript">
+
+// Get items
+function getItems(elem){
+    var columns = [];
+
+    $(elem).each(function(){
+        columns.push($(this).sortable('toArray').join(' '));
+    });
+
+    return columns.join('&');
+}
+
+$('#fixgroups').live("click", function(event){
+
+
+
+    $(".tmptr").remove();
+    var Mg_str = getItems('.grbody');
+
+    arr = {};
+
+    arr['csrfmiddlewaretoken'] = getCookie("csrftoken")
+    arr['modnumarr'] = Mg_str;
+
+    $('#groups .gr').each(function(){
+        var grid = $(this).attr('id');
+
+        $(this).find('.model').each(function(){
+            var modid = $(this).attr('id');
+
+            var modstr = getItems('.model[id='+modid+'] .wdtd');
+
+            arr[modid] = modstr;
+
+        });
+    });
+
+    $.post("/shop/fix_groups/",
+            arr,
+            function(data) {
+                $('#groups').html(data);
+
+                $('#groups .grbody').sortable({
+                    connectWith: '.grbody'
+                });
+
+                $('#groups .model').each(function(){
+                    $(this).find('.wdtd').sortable({
+                        connectWith: '#'+$(this).attr('id')+'.model .wdtd'
+                    });
+                });
+
+                $('#synforall').click();
+
+            }
+    );
+
+});
+
+
+
+var newgrid = {{Mg|length}};
+
+$('#addgroup').live("click", function(event){
+    show_alert("Что за чрень! Ну что но делает!");
+
+    $('#groups').find("#"+newgrid+".hid").show().prependTo($('#groups'));
+    newgrid++;
+
+});
+
+
+
+$('#synforall').live("click", function(event){
+
+    $(".tmptr").remove();
+    var Mg_str = getItems('.grbody');
+
+    arr = {};
+
+    arr['csrfmiddlewaretoken'] = getCookie("csrftoken")
+    arr['modnumarr'] = Mg_str;
+
+    $('#groups .gr').each(function(){
+        var grid = $(this).attr('id');
+        $(this).find('.model').each(function(){
+            var modid = $(this).attr('id');
+            var modstr = getItems('#'+modid+'.model .wdtd');
+
+            arr[modid] = modstr;
+
+        });
+    });
+
+
+    //$("#final_synonyms").append('<img src="/media/images/icons/icon-loading-animated.gif" style=" z-index: 100;" /> ')
+    //hren
+
+    $.post("/shop/synforall/",
+            arr,
+            function(data) {
+                $('#synonyms').html(data);
+
+                $('#synonyms').css('display','none');
+
+                $(".kw_patt_arr .kw_patt_item").each(function(){
+                   $(this).click();
+                });
+
+            }
+    );
+
+});
+
+
+$('#synforall_sep').live("click", function(event){
+
+    arr = {};
+    arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+
+    $.post("/shop/synforall_sep/",
+            arr,
+            function(data) {
+                $('#synonyms').html(data);
+
+
+                $(".kw_patt_arr .kw_patt_item").each(function(){
+                    $(this).click();
+                });
+
+            }
+    );
+
+});
+
+
+var selected_syn = {};
+
+$(".kw_patt_arr .kw_patt_item").live('click', function(event){
+    var grid = $(this).parents(".kw_patt_arr").attr('id');
+
+    $(".selected_gr_syn[id="+grid+"]").append($(this));
+
+    //alert(".selected_gr_syn[id="+grid+"]");
+    //alert($(".selected_gr_syn[id="+grid+"]").attr("id"));
+
+    if(selected_syn[grid] == undefined ){  selected_syn[grid] = [] }
+    selected_syn[grid].push( $(this).attr('id')  );
+
+
+
+});
+
+$(".selected_gr_syn .kw_patt_item").live('click', function(event){
+    var grid = $(this).parents(".selected_gr_syn").attr('id');
+
+    $(".kw_patt_arr[id="+grid+"]").append($(this));
+
+    var idx = selected_syn[grid].indexOf( $(this).attr('id') );
+    if(idx!=-1) selected_syn[grid].splice(idx, 1);
+
+
+});
+
+
+$('#show_model_syns').live("click", function(event){
+
+    arr = {};
+    arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+
+
+    for(grid in selected_syn){
+
+        arr[grid] = selected_syn[grid].join('_');
+
+    }
+
+    $.post("/shop/show_model_syns/",
+            arr,
+            function(data) {
+
+                $('#final_synonyms').html(data);
+
+            }
+    );
+
+});
+
+
+$('#push_model_syns_to_db').live("click", function(event){
+
+    arr = {};
+    arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+
+    $("#final_kw .model_container").each(function(){
+        var model_id = $(this).attr("id");
+        arr[model_id] = [];
+
+        $(this).find(".model_syn").each(function(){
+            arr[model_id].push($(this).find(".model_syn_text").html());
+        });
+
+        arr[model_id] =  arr[model_id].join();
+
+    });
+
+
+    $.post("/shop/push_model_syns_to_db/",
+            arr,
+            function(data) {
+                if(data == "0"){
+                    show_alert("Вы восхитительны","все правильно сделал");
+                    document.location.href = '/project/kwtemp'
+                }
+                else show_alert("Облом чувак(а)", data);
+
+            }
+    );
+
+});
+
+
+$('.del_model_syn').live("click", function(event){
+    $(this).parent().remove();
+});
+
+$('#next_vc').live("click", function(event){
+
+    document.location.href = "/shop/next_vc"
+
+});
+
+
+
+
+</script>
+
+{% endblock %}
+
+{% block document_ready %}
+
+
+
+
+$('#groups .grbody').sortable({
+connectWith: '.grbody'
+});
+
+$('#groups .model').each(function(){
+$(this).find('.wdtd').sortable({
+connectWith: '#'+$(this).attr('id')+'.model .wdtd'
+});
+});
+
+
+
+
+{% endblock %}
+
+{% block header %}
+{{ block.super }}
+{% block header_adds %}
+
+<div class="base_header_item">
+    vendor: {{ vendor }} <br>
+    category: {{ category }}
+</div>
+
+{% endblock %}
+{% endblock %}
+
+
+
+
+{% block content %}
+<style>
+    .nodisplay{
+        display: none;
+    }
+</style>
+
+<input id="fixgroups" name="fixgroups" type="button" value="синонимы" />
+<input id="addgroup" name="addgroup" type="button" class="nodisplay" value="addgroup" />
+<input id="synforall" name="synforall" type="button" class="nodisplay" value="synforall" />
+<input id="synforall_sep" name="synforall_sep" type="button" value="еще" />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input id="show_model_syns" name="show_model_syns" type="button" value="показать" />
+<input id="push_model_syns_to_db" name="push_model_syns_to_db" type="button" value="далее" />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+<br><br>
+
+<input id="next_vc" name="next_vc" type="button" value="следующая пара" />
+
+<br><br>
+<div id="groups" style="float:left;">
+
+    {%math Mg|length "$1" as st %}
+    {%math st "$1+5" as end %}
+    {% range st:end as id %}
+    <table id = "{{id}}" class="gr hid" style="display:none" cellpadding="0" cellspacing="0" border='1' width="250px" >
+        <tbody style="" class="grbody sortable">
+        <tr height="3" class="tmptr">
+            {% range end as 6 %}
+            <td></td>
+            {% endrange  %}
+        </tr>
+        </tbody>
+    </table>
+
+
+    {% endrange  %}
+
+
+
+
+    {% math 0 "$1" as gr_id %}
+    {% for gr in Mg %}
+    <div style="color:green; padding-left:20px;">{{gr_id}} :  {{gr.pattern}}</div>
+    <table id = "{{gr_id}}" class="gr" cellpadding="0" cellspacing="0" border='1' width="250px" >
+        <tbody style="" class="grbody sortable">
+        <tr height="3" class="tmptr">
+            {% range 6 as i %}
+            <td></td>
+            {% endrange  %}
+        </tr>
+        {% for model in gr.models %}
+        <tr class="model" id = "{{model.id}}">
+            {% math 0 "$1" as wd_pos %}
+            {% for wd in model.words %}
+            <td class="wdtd sortable">&nbsp;<div style="float:left; padding:0px 3px" id="{{wd}}"> {{wd}} </div></td>
+            {% math wd_pos "$1+1" as wd_pos %}
+            {% endfor %}
+            {%math model.words|length "6-$1" as end %}
+            {% range end as i %}
+            <td class="wdtd sortable"><div style="float:left; padding:0px 3px" id=" "></div></td>
+            {% endrange  %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% math gr_id "$1+1" as gr_id %}
+    {% endfor %}
+
+
+
+
+</div>
+
+
+<div id="synonyms" style="float:left;">
+</div>
+<div id="final_synonyms">
+</div>
+
+{% endblock %}

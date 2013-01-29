@@ -1,0 +1,95 @@
+{% load model %}
+
+
+    <li>
+        <div class="box_for_4sq"  gr_num="{{ gr_num }}" patt_key="{{ patt_key }}" >
+
+            {% if 4sq.patt_kw.cvm == 0 %}
+
+            <table class="sq" border="0" cellpadding="0" cellspacing="0" width="500">
+                <tr>
+
+                    <td class="layer3">
+                        <div class="spacer">
+                            {% for kw in 4sq.keywords.cvm|subarr:3 %}
+
+                                {{ kw|name }} <br>
+
+                            {% endfor %}
+                        </div>
+                        <div class="cb" kw_patt="cvm">x</div>
+                    </td>
+
+                </tr>
+            </table>
+
+            {% endif %}
+
+
+            {% if 4sq.patt_kw.cm == 0 or 4sq.patt_kw.vm == 0  %}
+            <table class="sq" border="0" cellpadding="0" cellspacing="0" width="500">
+                <tr>
+
+                {% if 4sq.patt_kw.cm == 0 %}
+                <td class="layer3">
+                    <div class="spacer">
+                        {% for kw in 4sq.keywords.cm|subarr:3 %}
+
+                            {{ kw|name }} <br>
+
+                        {% endfor %}
+                    </div>
+                    <div class="cb" kw_patt="cm">x</div>
+                </td>
+                {% endif %}
+
+
+                {% if 4sq.patt_kw.vm == 0 %}
+                <td class="layer3">
+                    <div class="spacer">
+                        {% for kw in 4sq.keywords.vm|subarr:3 %}
+
+                            {{ kw|name }} <br>
+
+                        {% endfor %}
+                    </div>
+                    <div class="cb" kw_patt="vm">x</div>
+                </td>
+                {% endif %}
+
+                </tr>
+            </table>
+            {% endif %}
+
+
+            {% if 4sq.patt_kw.m == 0 %}
+            <table class="sq" border="0" cellpadding="0" cellspacing="0" width="500">
+
+                <tr>
+
+                <td class="layer3">
+                     <div class="spacer">
+                              {% for kw in 4sq.keywords.m|subarr:3 %}
+
+                                  {{ kw|name }} <br>
+
+                              {% endfor %}
+                     </div>
+                     <div class="cb" kw_patt="m" >x</div>
+                </td>
+
+                </tr>
+
+            </table>
+            {% endif %}
+
+
+
+
+
+
+
+
+        </div>
+    </li>
+

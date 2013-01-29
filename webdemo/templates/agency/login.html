@@ -1,0 +1,50 @@
+{% extends "base/base.html" %}
+
+{% block head %}
+<link  rel="stylesheet" href="/media/css/agency_style.css" />
+{% endblock %}
+
+{% block document_ready %}
+    {% if form.errors or error %}
+        show_alert("Security errror", "Сожалеем, вы неправильно ввели логин или пароль");
+
+    {% endif %}
+
+    $("form[name=login_form]").submit(function(e){
+        if($(":text[name=username]").val().length == 0 || $(":password[name=password]").val().length == 0 )
+            return false;
+    });
+
+{% endblock %}
+
+{% block content %}
+
+
+<div id="login_td">
+    
+  <form action='.' method='post' name="login_form">{% csrf_token %}
+    <label for="username">Логин:</label><br>
+    <input type="text" name="username" value="" id="username"><br>
+    <label for="password">Пароль:</label><br>
+    <input type="password" name="password" value="" id="password"><br>
+
+    <input type="checkbox" name="remember_me" checked  id="remember_me">
+    <label for="password">Запомнить меня</label><br><br>
+
+    <input type="submit" value="Войти" id="sub_login"/>
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+  </form>
+
+  <br>
+  <a href="" id="lost_pass">Что, пароль забыли ?</a>
+
+</div>
+    
+    
+    
+<div id="main_stapes_td">
+    <br><br><br><br><br><br><br><br>
+    <h1>Схема действий + напутственные слова</h1>
+</div>
+
+{% endblock %}

@@ -1,0 +1,14 @@
+
+
+{%for gr_num, gr_4sqs in 4sqs.items %}
+    {%for patt_key, 4sq in gr_4sqs.items %}
+
+        {% if 0 in 4sq.patt_kw.values %}
+
+            {% include 'shop/foursquare.html' %}
+
+        {% endif %}
+
+
+    {% endfor %}
+{% endfor %}

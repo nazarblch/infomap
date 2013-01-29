@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<yml_catalog date="2010-04-01 17:00">
+<shop>
+	    <name>зэ бэст</name>
+		<company>Best online seller Inc.</company>
+		<url>http://best.seller.ru/</url>
+	    <agency>kldsfkjsd</agency>
+		<email>CMS@CMS.ru</email>
+		
+		<currencies>
+			<currency id="RUR" rate="1"/>
+			<currency id="USD" rate="CBRF" plus="3"/>
+			<currency id="EUR" rate="CBRF" plus="3"/>
+        </currencies>
+		
+		<categories>
+			<category id="1">Книги</category>
+			<category id="2" parentId="1">Детективы</category>
+			<category id="3" parentId="1">Боевики</category>
+		
+			<category id="4">Видеоo</category>
+			<category id="5" parentId="4">Комедии</category>
+		
+			<category id="6">Принтеры</category>
+			<category id="7">Оргтехника</category>
+		</categories>
+		
+		<offer id="12341" type="vendor.model" available="true" bid="13">
+			<url>http://best.seller.ru/product_page.asp?pid=12344</url>
+			<price>700</price>
+			<currencyId>USD</currencyId>
+			<model>Deskjet D2663</model>
+			<vendor>НP</vendor>
+			<categoryId>6</categoryId>
+			<delivery>true</delivery>
+			<local_delivery_cost>300</local_delivery_cost>
+			<typePrefix>Принтер</typePrefix>
+			<vendorCode>CH366C</vendorCode>
+			<description>Серия принтеров для людей, которым нужен надежный, простой в использовании 
+			цветной принтер для повседневной печати. Формат А4. Технология печати: 4-цветная термальная струйная. 
+			Разрешение при печати: 4800х1200 т/д.
+			</description>
+			<sales_notes>Необходима предоплата.</sales_notes>
+			<manufacturer_warranty>true</manufacturer_warranty>
+			<country_of_origin>Япония</country_of_origin>
+		    <downloadable>false</downloadable>
+		
+			<barcode>1234567890120</barcode>
+			<param name="Максимальный формат">А4</param>
+			<param name="Технология печати">термическая струйная</param>
+			<param name="Тип печати">Цветная</param>
+			<param name="Количество страниц в месяц" unit="стр">1000</param>
+			<param name="Потребляемая мощность" unit="Вт">20</param>
+			<param name="Вес" unit="кг">2.73</param>
+        </offer>
+        
+        <offer id="12342" type="vendor.model" available="true" bid="13">
+			<url>http://best.seller.ru/product_page.asp?pid=12346</url>
+			<price>700</price>
+			<currencyId>USD</currencyId>
+			<model>Deskjet D2663sdsd</model>
+			<vendor>НP</vendor>
+			<categoryId>6</categoryId>
+			<delivery>true</delivery>
+			<local_delivery_cost>300</local_delivery_cost>
+			<typePrefix>Принтер</typePrefix>
+			
+			
+		
+			<barcode>1234567890120</barcode>
+			<param name="Максимальный формат">А4</param>
+			<param name="Технология печати">термическая струйная</param>
+			<param name="Тип печати">Цветная</param>
+			<param name="Количество страниц в месяц" unit="стр">1000</param>
+			<param name="Потребляемая мощность" unit="Вт">20</param>
+			<param name="Вес" unit="кг">2.73</param>
+        </offer>
+		
+</shop>
+</yml_catalog> 

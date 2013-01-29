@@ -1,0 +1,78 @@
+{% extends "base/base.html" %}
+
+{% block document_ready %}
+    show_alert("cdsfds", "csacdsa");
+
+{% endblock %}
+
+
+{% block content %}
+
+<!-- external page is given in the href attribute (as it should be) -->
+<a href="/media/html/external-content.html" rel="#overlay" class="external" style="text-decoration:none">
+
+    <!-- remember that you can use any element inside the trigger -->
+    <button type="button">Show external page in overlay</button>
+</a>
+
+<a href="" rel="#facebox"  class="facebox" style="text-decoration:none">
+
+        <!-- remember that you can use any element inside the trigger -->
+        <button type="button">Show external page in overlay</button>
+</a>
+
+<a href="" rel="#message"  class="message" style="text-decoration:none">
+
+        <!-- remember that you can use any element inside the trigger -->
+        <button type="button">Show external page in overlay</button>
+</a>
+
+
+
+
+
+<!-- overlayed element -->
+<div class="apple_overlay overlay_back1 " id="overlay">
+
+    <!-- the external content is loaded inside this tag -->
+    <div class="contentWrap"></div>
+
+</div>
+<br>
+<br>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+<div id="facebox" style="position: fixed; z-index: auto; top: 260px; left: 473px; display: none;">
+
+        <div>
+            <h2>Facebox</h2>
+
+            <p>
+                This dialog is opened programmatically when the page loads. There is no need for a trigger element.
+            </p>
+
+            <form>
+                <input type="file">
+            </form>
+
+            <p style="color:#666">
+                To close, click the Close button or hit the ESC key.
+            </p>
+
+
+        </div>
+
+</div>
+
+<div id="message" class="message_back" >
+<h4>dsдавдплжв</h4>
+    dsfdsfdsfdsfsdfsdfsdfsdfsdfs
+</div>
+
+    <div id="message1" class="message_back" >
+        <h4>dsдавдплжв</h4>
+        dsfdsfdsfdsfsdfsdfsdfsdfsdfs
+    </div>
+
+
+{% endblock %}

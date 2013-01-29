@@ -1,0 +1,475 @@
+{% extends "base/base.html" %}
+
+{% load iterations %}
+
+{% block head %}
+
+<link  rel="stylesheet" href="/media/css/shop_style.css" />
+<script type="text/javascript" src="/media/js/jquery.json-2.3.min.js"></script>
+
+<script type="text/javascript">
+
+		var cat_selected_syn={};
+		var ven_selected_syn={}; 
+		var cur_elem_id = {{first_elem.id}};
+		var cur_elem_type = "cat";   
+		var tabs = [];
+        var new_unchecked_words = [];
+
+        var next_page_url = "/shop/kw_phrases/";
+
+
+            function change_cur_cv_ob(type, id, unchecked_words){
+                arr = {}
+
+                arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+
+                arr['ob_name'] = type+id;
+                arr['dbtable'] = type;
+                arr['id'] = id;
+
+                arr['new_unchecked_words'] = unchecked_words.join("&_&");
+
+
+                $.post("/shop/change_cur_cv_ob/",
+                        arr,
+                        function(data) {
+                           // alert(data);
+
+                        }
+                );
+
+            }
+
+
+			$("#categories .cat").live('click', function(event){
+			
+				var curtab = $("#container").clone(true,true);
+				tabs[cur_elem_type+cur_elem_id] = curtab
+			
+				cur_elem_type = "cat";
+				cur_elem_id = parseInt($(this).attr('id'));
+				var dbtable = 'cat'
+				
+				
+				if(tabs.indexOf(cur_elem_type+cur_elem_id) == -1){
+	
+					
+					var newtab = $("#container").clone(true,true);
+					$("#container").remove();
+					tabs.push(cur_elem_type+cur_elem_id)
+					tabs[cur_elem_type+cur_elem_id] = newtab
+					
+					$("#collstd").prepend(newtab);
+
+                    var new_unchecked_words_str = new_unchecked_words.join("&_&");
+					
+					$.ajax({							
+						type: "POST",				
+						url: "/shop/get_syn/",
+						data: 'dbtable='+dbtable+'&id='+cur_elem_id+"&csrfmiddlewaretoken="+getCookie("csrftoken")+'&new_unchecked_words='+new_unchecked_words_str,
+						dataType: "text", 		
+						timeout: 30000,
+						
+						success: function(data) {
+					
+									$("#proposed").html(data);
+									$("#selected").empty();
+                                   // setTimeout("$('#proposed').find('.selectable' ).myselectable()",1100);
+								 
+						}
+						
+						
+						
+					});	
+					
+				}else{
+					$("#container").remove();
+					$("#collstd").prepend(tabs[cur_elem_type+cur_elem_id]);
+                    change_cur_cv_ob(cur_elem_type, cur_elem_id, new_unchecked_words);
+				}
+
+                new_unchecked_words = []
+
+			});
+			
+			$("#vendors .ven").live('click', function(event){
+				
+				var curtab = $("#container").clone(true,true);
+				tabs[cur_elem_type+cur_elem_id] = curtab
+			
+				
+				cur_elem_type = "ven";
+				cur_elem_id = $(this).attr('id'); 
+				$("#selected").empty();
+				var dbtable = 'ven'
+								
+				if(tabs.indexOf(cur_elem_type+cur_elem_id) == -1){
+					
+					var newtab = $("#container").clone(true,true);
+					$("#container").remove();
+					tabs.push(cur_elem_type+cur_elem_id)
+					tabs[cur_elem_type+cur_elem_id] = newtab
+					
+					$("#collstd").prepend(newtab);
+
+                    var new_unchecked_words_str = new_unchecked_words.join("&_&");
+					
+					$.ajax({							
+						type: "POST",				
+						url: "/shop/get_syn/",
+						data: 'dbtable='+dbtable+'&id='+cur_elem_id+"&csrfmiddlewaretoken="+getCookie("csrftoken")+'&new_unchecked_words='+new_unchecked_words_str,
+						dataType: "text", 		
+						timeout: 30000,
+						
+						success: function(data) {
+					
+									$("#proposed").html(data);
+									$("#selected").empty();
+
+                           // setTimeout("$('#proposed').find('.selectable' ).myselectable()",1100);
+						}
+						
+						
+						
+					});	
+					
+				}else{
+					$("#container").remove();
+					$("#collstd").prepend(tabs[cur_elem_type+cur_elem_id]);
+
+                    change_cur_cv_ob(cur_elem_type, cur_elem_id, new_unchecked_words);
+				}
+
+                new_unchecked_words = []
+
+			});
+
+            function del_span(elem){
+
+                var str = "";
+
+                $(elem).find("span").each(function () {
+                   str += " " + $(this).html().trim()
+                });
+
+                str = str.substring(1);
+
+                return str;
+
+            }
+			
+			
+			$("#proposed .syn").live('dblclick', function(event){
+				$("#selected").append($(this))
+				
+				if( cur_elem_type == "cat" ){
+					if(cat_selected_syn[cur_elem_id] == undefined ){  cat_selected_syn[cur_elem_id] = [] }
+					cat_selected_syn[cur_elem_id].push( del_span( this ) );
+				}
+				if( cur_elem_type == "ven" ){
+					if(ven_selected_syn[cur_elem_id] == undefined ){  ven_selected_syn[cur_elem_id] = [] }
+					ven_selected_syn[cur_elem_id].push( del_span( this ) )
+				}
+
+				
+			});
+			
+			$("#selected .syn").live('dblclick', function(event){
+				$("#proposed").append($(this))
+				
+				if( cur_elem_type == "cat" ){
+					var idx = cat_selected_syn[cur_elem_id].indexOf( del_span( this ) )
+					if(idx!=-1) cat_selected_syn[cur_elem_id].splice(idx, 1)
+				}
+				if( cur_elem_type == "ven" ){
+					var idx = ven_selected_syn[cur_elem_id].indexOf(  del_span( this ) )
+					if(idx!=-1) ven_selected_syn[cur_elem_id].splice(idx, 1)
+				}
+				
+			});
+			
+			
+			
+			$("#sub_additional").live('click', function(event){
+				var syn = $("#additional").val();
+				$("#additional").val("");
+				
+				$("#selected").append("<div id='' class='syn'>"+syn+"</div>")
+				
+				if( cur_elem_type == "cat" ){
+					if(cat_selected_syn[cur_elem_id] == undefined ){  cat_selected_syn[cur_elem_id] = [] }
+					cat_selected_syn[cur_elem_id].push( syn  ) 
+				}
+				if( cur_elem_type == "ven" ){
+					if(ven_selected_syn[cur_elem_id] == undefined ){  ven_selected_syn[cur_elem_id] = [] }
+					ven_selected_syn[cur_elem_id].push( syn ) 
+				}
+				
+			});
+			
+			
+			$("#saveindb").live('click', function(event){
+				
+
+				var arr = {};
+				
+				arr['csrfmiddlewaretoken'] = getCookie("csrftoken")
+
+
+                arr['ven_syn'] = $.toJSON(ven_selected_syn);
+                arr['cat_syn'] = $.toJSON(cat_selected_syn);
+				
+				$.post("/shop/set_syn/", 
+				       arr,
+				       function(data) {
+					      show_alert("Data Loaded", data);
+                          if(data = "0") document.location.href = next_page_url
+				       }
+				);
+				
+			});
+
+            $("#saveindb_4square").live('click', function(event){
+
+                next_page_url = "/shop/foursquares/";
+
+                $("#saveindb").click();
+
+            });
+
+            $("#more_syn").live('click', function(event){
+
+                $("#proposed").empty();
+
+                arr = {};
+                arr['csrfmiddlewaretoken'] = getCookie("csrftoken");
+                arr['new_unchecked_words'] = new_unchecked_words;
+                if( cur_elem_type == "ven" ){
+                    arr['checked_phr'] = ven_selected_syn[cur_elem_id];
+                }
+                if( cur_elem_type == "cat" ){
+                    arr['checked_phr'] = cat_selected_syn[cur_elem_id];
+                }
+
+                arr["dbtable"] = cur_elem_type;
+
+
+                $.post("/shop/get_more_syn/",
+                        arr,
+                        function(data) {
+                            $("#proposed").html(data);
+
+                        }
+                );
+
+
+
+            });
+
+
+
+
+        (function( $ ) {
+            $.fn.myselectable = function() {
+
+                this.find("span").live("click", function(e){
+
+                            $(this).toggleClass("ui-selected");
+
+                            var cur_line = $(this).parents(".selectable");
+                            $(".cur_line").removeClass("cur_line");
+                            cur_line.addClass("cur_line");
+
+                            $(".ui-selected").each(function () {
+                                if( ! $(this).parents(".selectable").hasClass("cur_line") ){
+                                    $(this).removeClass("ui-selected");
+                                }
+                            });
+
+                });
+
+                $(document).keypress( function(e){
+
+                    var keynum = e.which;
+
+                    if(keynum == 13){
+                        e.preventDefault();
+
+                        var bad_words = [];
+
+
+                        $(".cur_line").find("span").each(function () {
+                           if(! $(this).hasClass("ui-selected") ){
+                               bad_words.push($(this).html());
+                               new_unchecked_words.push($(this).html());
+                           }
+                        });
+
+                        $("#proposed .selectable").each(function () {
+                            $(this).find("span").each(function () {
+                                var word = $(this).html();
+                                var idx = bad_words.indexOf(word);
+
+                                if(idx!=-1){
+                                    $(this).remove();
+                                }
+
+                            });
+
+                            if ($(this).html().length == 0) $(this).remove();
+                        });
+
+                        bad_words = [];
+
+                        $(".cur_line").dblclick();
+
+
+                        function compare_arrs(arr1, arr2){
+
+                            if (arr1.length != arr2.length) return false;
+
+                            for(k1 in arr1){
+                                var idx = arr2.indexOf( arr1[k1] )
+                                if(idx!=-1) arr2.splice(idx, 1)
+                            }
+
+                            if (arr2.length == 0) return true
+                            else return false
+
+
+                        }
+
+                        var cur_line_text = del_span( ".cur_line" );
+                        $(".selectable").each(function () {
+                            var text = del_span( this );
+
+                            if ( !$(this).hasClass("cur_line") && compare_arrs(text.split(" "), cur_line_text.split(" ") ) ){
+                                $(this).remove();
+                            }else{
+
+                                $(this).addClass("withlabel");
+                                $("#proposed .selectable").each(function () {
+                                    var text1 = del_span( this );
+                                    if( !$(this).hasClass("withlabel") && compare_arrs(text.split(" "), text1.split(" ") )  )
+                                        $(this).remove();
+                                });
+                                $(this).removeClass("withlabel");
+
+                            }
+
+                        });
+
+
+                        $(".cur_line").removeClass("cur_line");
+
+                    }
+
+                });
+
+
+                return this;
+
+
+            };
+        })( jQuery );
+
+
+
+
+			
+</script>
+
+
+{% endblock %}
+
+
+{% block document_ready %}
+
+    var curtab = $("#container").clone(true,true);
+    tabs.push(cur_elem_type+cur_elem_id)
+    tabs[cur_elem_type+cur_elem_id] = curtab
+    $( ".selectable" ).myselectable();
+
+{% endblock %}
+
+
+
+{% block content %}
+
+
+
+    <div id="ven_cat_td">
+
+                <div id="categories">
+                    <div class="ven_cat_header">Категории</div>
+                    {%for cat in  categories%}
+                        <div id="{{cat.id}}" class="cat">{{cat.name}}</div>
+                    {%endfor%}
+                </div>
+
+                <div id="vendors">
+                    <div class="ven_cat_header">Производители</div>
+                    {%for ven in  vendors%}
+                        <div id="{{ven.id}}" class="ven">{{ven.name}}</div>
+                    {%endfor%}
+                </div>
+        <div>
+            <input id="saveindb" type="button" value="Далее" class="button_style1" />
+            <input id="saveindb_4square" type="button" value="Квадраты" class="button_style1" />
+        </div>
+
+    </div>
+
+
+
+    <div id="collstd">
+
+            <div id="container">
+                
+                <div class="syn_block">
+                <div class="syn_header" >Предлагаемые синонимы</div>
+                    <div id="proposed"  >
+
+                        {%for syn in  db_category_syn%}
+                            <div id="" class="syn selectable">
+                                {% for word in syn.split %}
+                                    <span>{{ word }}</span>
+                                {% endfor %}
+
+                            </div>
+
+                        {%endfor%}
+                        {%for syn in  ya_category_syn%}
+                            <div id="" class="syn selectable">
+                                {% for word in syn.split %}
+                                    <span>{{ word }}</span>
+                                {% endfor %}
+                            </div>
+
+                        {%endfor%}
+                    </div>
+                    <div id="more_syn" class="button_style1">Еще</div>
+                </div>
+
+                <div class="syn_block">
+                <div class="syn_header" >Выбранные синонимы</div>
+                    <div id="selected" >
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="add_syn_field">
+                <input id="additional" name="additional" type="text" /><br>
+                <input id="sub_additional" type="button" class="button_style1" value="Добавить синоним" />
+            </div>
+    </div>
+    
+
+
+
+
+
+{% endblock %}
+

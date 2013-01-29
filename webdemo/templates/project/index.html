@@ -1,0 +1,19 @@
+{% extends "base/base.html" %}
+
+{% block head %}
+    <link  rel="stylesheet" href="/media/css/shop_style.css" />
+    <script src="/media/js/jquery.form.js"></script>
+{% endblock %}
+
+{% block document_ready %}
+{% endblock %}
+
+{% block content %}
+    <form action="" method="post">
+        <table>
+            {{ form.as_table }}
+        </table>
+
+        <input type="submit" value="Submit">
+
+{% endblock %}

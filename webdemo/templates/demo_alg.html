@@ -1,0 +1,48 @@
+<script>
+    $(function() {
+        $("#alg-tabs").tabs({selected: {{ alg_tab_index }} });
+    });
+</script>
+
+<div id="alg-tabs">
+<ul>
+    <li><a href="#alg-tabs-1">Unweighted algorithms</a></li>
+    <li><a href="#alg-tabs-2">Weighted algorithms</a></li>
+</ul>
+<div id="alg-tabs-1">
+<form action="" method="get">
+    {{ form.as_p }}
+    <input type="submit" value="Submit" />
+</form>
+</div>
+<div id="alg-tabs-2">
+<form id="formw" action="" method="get">
+    {% for hidden in formw.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+    <table>
+    {% for field in formw.nongrouped_fields  %}
+        <tr><th>{{ field.label_tag }}</th><td>{{ field.errors }} {{ field }}
+            {% if field.help_text %}
+                <script>$(document).ready(function() { $('#formw :input[name={{ field.name }}]').qtip({content: "{{ field.help_text }}", show: {event: 'focus'}, hide: {event: 'blur'}});});</script>
+            {% endif %}
+        </td></tr>
+    {% endfor %}
+    {% for group in formw.field_groups %}
+        <tr><th colspan="2">{{ group.name }}</th></tr>
+        {% for field in group.get_fields %}
+            <tr><th>{{ field.label_tag }}</th><td>{{ field.errors }} {{ field }}
+                {% if field.help_text %}
+                    <script>$(document).ready(function() { $('#formw :input[name={{ field.name }}]').qtip({content: "{{ field.help_text }}", show: {event: 'focus'}, hide: {event: 'blur'}});});</script>
+                {% endif %}
+            </td></tr>
+        {% endfor %}
+    {% endfor %}
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+</div>
+</div>
+{% if alg %}
+<div align="center" style="font-size: 1.1em">{{ comms|length }} communities found by algorithm "{{ alg.name }}", NMI={{ nmi }}:</div>
+{% endif %}

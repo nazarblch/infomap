@@ -1,0 +1,16 @@
+table.models {
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	background-color:#FFFFFF;
+	border: solid #000 0px;
+	border-collapse: collapse;
+}
+table.models td {
+	border: solid #000 0px;
+	padding: 5px;
+}
+.title_cat_ven {
+	text-align: center;
+    	font-size: 15pt;
+	height: 40px;
+}
+

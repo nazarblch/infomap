@@ -1,0 +1,93 @@
+    {{ group.cat.name }} {{ group.ven.name }}
+
+    <p>
+        сумма продаж: {{ group.profit }}
+    </p>
+
+    <p>
+        <label >Затраты на группу:</label>
+        <input type="text"   class="max_price_input amount"   initvalue="{{ group.budget }}"/>
+    </p>
+
+    <div class="slider-range-min" >
+    </div>
+
+    <div class="price_group_item_container">
+
+    <table border="0"  class="price_group_item" align="" cellpadding="0" cellspacing="0">
+
+        <div class="hide_show">hide/show</div>
+
+        <tr >
+
+            <td >модель товара</td>
+            <td >цена клика</td>
+            <td >кол кликов</td>
+            <td >затраты</td>
+
+        </tr>
+
+    {% for product in group.products %}
+
+
+
+        <tr class="product_line">
+
+           <td class="product_obj">
+               {{  product }}
+               <div class="product_info product_info_click">
+                   <div class="product_info_item"><strong>{{ product.obj }}</strong></div>
+                   <div class="product_info_item"><strong>цена: {{ product.obj.price }}</strong></div>
+                   <div class="product_info_item">
+                       <br>
+                       <strong>ключевые фразы:</strong> <br>
+
+                       <table border="0" cellpadding="0" cellspacing="0">
+                           <tr>
+                               <td>name</td>
+                               <td>price</td>
+                               <td>clicks</td>
+                               <td>ctr</td>
+                               <td>sum</td>
+                               <td>position</td>
+
+                           </tr>
+
+                           {% for kw_node in product.edges %}
+
+                           {% if kw_node.accepted %}
+                               <tr>
+                                   <td>{{ kw_node }}</td>
+                                   <td>{{ kw_node.forecast.price|floatformat:4 }}</td>
+                                   <td>{{ kw_node.forecast.clicks }}</td>
+                                   <td>{{ kw_node.forecast.ctr|floatformat:4 }}</td>
+                                   <td>{{ kw_node.forecast.sum|floatformat }}</td>
+                                   <td>{{ kw_node.forecast.position }}</td>
+
+                               </tr>
+                           {% endif %}
+                       {% endfor %}
+                       </table>
+
+                   </div>
+
+               </div>
+           </td>
+           <td >{{  product.forecast.price|floatformat:4 }}</td>
+           <td >{{  product.forecast.clicks }}</td>
+           <td >{{  product.forecast.sum|floatformat }}</td>
+
+        </tr>
+
+
+
+    {% endfor %}
+
+
+    </table>
+
+
+
+    </div>
+
+

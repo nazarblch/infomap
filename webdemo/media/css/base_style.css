@@ -1,0 +1,91 @@
+
+body {
+    background:#efefef;
+    font-family: verdana,sans-serif;
+    font-size:12px;
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+
+
+#base_footer{
+    vertical-align: bottom;
+    text-align: center;
+
+    padding: 10px;
+    z-index:0;
+
+}
+
+
+
+
+
+#base_header{
+
+    height: 43px;
+    width: 100%;
+    background-color:#d3d3d3;
+    box-shadow: #999 0px 2px 5px 0px;
+    border-bottom: 1px solid #666;
+
+}
+
+.base_header_item{
+    float: left;
+    padding: 5px;
+
+}
+
+#base_content{
+
+}
+
+#log_file{
+    display: none;
+    padding:10px;
+    background-color: white;
+    border-top: 1px solid #999;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#log_header{
+    text-align: right;
+    color: #747875;
+}
+
+#log_header span{
+    cursor: pointer;
+    padding: 2px;
+}
+
+#log_messages{
+    width: 100%;
+}
+
+#log_messages .mess_type{
+    font-size: 14px;
+    color: #666;
+
+}
+
+#log_messages .mess_str{
+    font-size: 11px;
+}
+
+#log_messages .error{
+    color: #b22222;
+}
+
+.button_style1{
+    background-color: #CCCCCC;
+    border: 1px solid #999999;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 1px;
+    width: 164px;
+}
+

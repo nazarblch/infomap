@@ -1,0 +1,121 @@
+{% extends "base/base.html" %}
+
+{% block head %}
+    <link  rel="stylesheet" href="/media/css/agency_style.css" />
+    <script src="/media/js/jquery.form.js"></script>
+{% endblock %}
+
+
+{% block document_ready %}
+
+			$.ajaxSetup({
+				headers: { "X-CSRFToken": getCookie("csrftoken") }
+			});
+
+			$(":button[name=sub_client]").live('click', function(event){
+
+				var form = $(this).parents("form");
+
+				$.ajax({
+					type: "POST",
+					url: "/agency/newclient/",
+					data: form.serialize(),
+					dataType: "text",
+					timeout: 30000,
+
+					success: function(data) {
+
+                        if(data[0] == 'E'){
+                            show_alert("Direct error", data);
+                        }else{
+						 $("#cllist").find("tbody").prepend(data);
+                        }
+
+					}
+
+				});
+			});
+
+			$(".client").hover(function(event){
+				$(this).stop().animate({marginLeft: '15px'}, 300);
+			},
+			function(){
+				$(this).stop().animate({marginLeft: '0px'}, 100);
+			}
+			);
+
+			$(".client .choose_but").live("click", function(event){
+				var login = $(this).parents(".client").attr("id");
+
+				$.ajax({
+					type: "POST",
+					url: "/agency/addclient_todb/",
+					data: "login="+login+"&csrfmiddlewaretoken="+getCookie("csrftoken"),
+					dataType: "text",
+					timeout: 30000,
+
+					success: function(data) {
+						 if(data==1 || data=="1"){
+							  document.location.href = "/shop/";
+						 }else{
+							  alert("wrong login");
+						 }
+					}
+
+				});
+
+
+			});
+
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<div id="new_client">
+
+    <h3>Добавить клиента:</h3>
+
+
+    <form action="/agency/newclient/" method="post" name="form" >{% csrf_token %}
+        <label for="cllogin">Логин:</label><br>
+        <input name="cllogin" type="text" id="cllogin" /><br>
+        <label for="clname">Имя:</label><br>
+        <input name="clname" type="text" id="clname" /><br>
+        <label for="clsur">Фамилия:</label><br>
+        <input name="clsur" type="text" id="clsur" /><br><br>
+        <input name="sub_client" type="button" value="Добавить" id="sub_client" /><br>
+    </form>
+
+</div>
+
+
+
+
+<div id="cllist">
+    <table align="center" width=""  cellpadding="0" cellspacing="0" style="border: 1px solid #CCC;">
+    <caption>Список клиентов</caption>
+    <tbody>
+	{% for cl in clients %}
+		
+			<tr id="{{cl.Login}}" class="client"  height="23px" valign="center" >
+               <td><span >{{cl.Login}}</span></td>
+               <td><span >{{cl.FIO}}</span></td>
+               <td><span class="info_but">info</span></td>
+               <td><span class="del_but">del</span></td>
+               <td><span class="choose_but">choose</span></td>
+            </tr>
+		
+	{% endfor %}
+    </tbody>
+    </table>
+</div>	
+<br>
+
+
+
+
+
+{% endblock %}

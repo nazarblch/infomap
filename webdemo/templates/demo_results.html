@@ -1,0 +1,44 @@
+{% load demo_tags %}
+<form name="optionsform">
+    <input type="checkbox" name="animate" value="0" onChange="cv.setAnimate(document.optionsform.animate.checked);">enable forces animation</input>
+</form>
+<div id="canvas"></div>
+<script type="text/javascript">
+    cv = new CommVis(document.getElementById('canvas'));
+
+</script>
+{% for comm in comms %}
+    <table border="1">
+        {% for u in comm %}
+            <tr><td class="comm-{{ forloop.parentloop.counter }}"></td>
+                <td>{% ifequal u net.friends|length %} seed {% else %} {{ net.friends|hash:u|hash:"name" }}{% endifequal %}</td>
+                <td>{{ comm_ws|hash:forloop.parentloop.counter0|hash:forloop.counter0 }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br/>
+{% endfor %}
+User's lists:
+{% for comm in user_comms %}
+    {{  user_comms_names|hash:forloop.counter0 }}
+    <table border="1">
+        {% for u in comm %}
+            <tr><td class="usercomm-{{ forloop.parentloop.counter }}"></td><td>{% ifequal u net.friends|length %} seed {% else %} {{ net.friends|hash:u|hash:"name" }}{% endifequal %}</td></tr>
+        {% endfor %}
+    </table>
+    <br/>
+{% endfor %}
+<script type="text/javascript">
+    for (var k = 0; k < comms.length; k++) {
+        var i, tds = document.getElementsByClassName('comm-' + (k+1));
+        for (i = 0; i < tds.length; i++) {
+            tds[i].style.backgroundColor = comms_colors[k];
+            tds[i].style.width = 30;
+        }
+    }
+</script>
+{% comment %}
+{% if comments %}
+    <pre>{{ comments }} </pre>
+{% endif %}
+{% endcomment %}

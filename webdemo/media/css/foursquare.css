@@ -1,0 +1,50 @@
+ul li {list-style-type: none;}
+
+.box_for_4sq {
+
+    width: 500px;
+    height: 60px;
+    margin:10px 10px 10px 20px;
+    border:1px solid #5b5b5b;
+    background-color:#fff;
+    padding:0;
+
+}
+
+
+.sq{
+    position: absolute;
+    background-color: #f4f379;
+    height: 60px;
+
+}
+
+.layer3 {
+
+    background-color: #f39814;
+    height: 60px;
+    text-align: center;
+    margin:0px 0px 0px 0px;
+
+}
+
+div.spacer {
+    margin:0px 0px 0px 0px;
+    height: 60px;
+    width: 90%;
+    background-color: #FFFFFF;
+    float: left;
+
+
+}
+
+div.cb {
+    margin:0px 0px 0px 0px;
+    width: 10%;
+    text-align: right;
+    padding: 0;
+    height: 60px;
+    background-color: #DDD;
+    float: left;
+    cursor: pointer;
+}
