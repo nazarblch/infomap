@@ -1,14 +1,7 @@
 from agency.models import Clients
-from shop.models import ShopInfo
 
 
 def get_default_info(request):
-
-    if "shop" not in request.session:
-        request.session["shop"] = ShopInfo.objects.get(name = "mobileshop")
-        shopobj = request.session["shop"]
-        request.session['client'] = shopobj.client.id
-	
 
     if 'client' not in request.session:
         raise IndentationError("Client hasn't been defined")

@@ -80,7 +80,8 @@
 
                 success: function(data) {
 
-                    document.location.href = "/shop/foursquares";
+                    show_alert("Synonyms saved", data)
+                    document.location.reload(true);
                 }
             });
 
@@ -173,6 +174,7 @@
     <input type="button" id="next_4sqs" value="Следующие ключевые слова">
     <br>
     <br>
-    <input type="button" id="next_cv" value="Следующие категория-производитель">
+    <input type="button" id="next_cv" value="Сохранить  ключевые слова">
+
 
 {% endblock %}

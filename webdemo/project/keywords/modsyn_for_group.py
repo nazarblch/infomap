@@ -2,7 +2,7 @@
 from suds import WebFault
 from shop.groups import make_group, ModelGroup, join_groups,make_ven_cat_syn_phrs, find_nearest_groups, get_popul_gr_phrs
 from shop.groupModels import model
-from yafunc import wordstat
+from yafunc import wordstat, budget_forecast
 
 
 
@@ -22,6 +22,43 @@ def Mg_for_vendor_category(shop, category, vendor):
     Mg = join_groups(Mg)
 
     return Mg
+
+
+def clear_unpopular_group_patterns(Mg):
+
+    phr_for_forecast = {}
+
+    patts_num_to_check = 0
+    for grNum, gr in enumerate(Mg):
+        if patts_num_to_check > 80: break
+
+        for pattKey in gr.unchecked_patts:
+            phr = " ".join(gr.models[0].get_subphrathe(gr.kwpatt[pattKey][0], gr.pattern))
+
+            patts_num_to_check += 1
+
+            if not phr_for_forecast.has_key(phr):
+                phr_for_forecast[phr] = [(grNum, pattKey)]
+            else:
+                phr_for_forecast[phr].append((grNum, pattKey))
+
+        gr.unchecked_patts = set()
+
+    if phr_for_forecast.__len__() == 0: return
+
+    forecast_dict = budget_forecast(phr_for_forecast.keys()[:100])
+
+    for phr, data in forecast_dict.items():
+
+        shows = int(data["Shows"])
+        if shows < 100:
+
+            grNum_pattKey_arr = phr_for_forecast[phr]
+
+            for grNum, pattKey in grNum_pattKey_arr:
+                del Mg[grNum].kwpatt[pattKey]
+
+
 
 def wordstat_first_request(Mg, shopobj, category, vendor):
     ven_syn = shopobj.vendor_syns.filter(vendor=vendor)
@@ -43,6 +80,8 @@ def wordstat_first_request(Mg, shopobj, category, vendor):
             num,wordsoutset = find_nearest_groups(Mg, phr, 0.2)
             for addwd in wordsoutset:
                 additional_wd.add(addwd)
+
+    #clear_unpopular_group_patterns(Mg)
 
     Mg_AddWd = {"Mg": Mg, "additional_wd": additional_wd}
 
@@ -67,7 +106,7 @@ def wordstat_next_request( vendor, shift, Mg, border=0.19):
         kwphrases, req_phrases = wordstat(req_phrs[:50], showsmax=10000, geos = [1,2])
     except WebFault, e:
         print e
-        kwphrases, req_phrases = wordstat(req_phrs[:50], showsmax=20000, geos = [1,2])
+        kwphrases, req_phrases = wordstat(req_phrs[:50], showsmax=10000, geos = [1,2])
 
     additional_wd = {}
 
@@ -98,7 +137,11 @@ def wordstat_next_request( vendor, shift, Mg, border=0.19):
 
                     pattkey = str(sorted(patt.values()))
                     if gr.kwpatt.has_key(pattkey): gr.kwpatt[pattkey][1] += friq
-                    else: gr.kwpatt[pattkey] = [patt, friq]
+                    else:
+                        gr.kwpatt[pattkey] = [patt, friq]
+                        gr.unchecked_patts.add(pattkey)
+
+        #clear_unpopular_group_patterns(Mg)
 
         Mg_AddWd = {"Mg": Mg, "additional_wd": additional_wd}
 

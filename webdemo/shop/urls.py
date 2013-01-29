@@ -27,6 +27,7 @@ urlpatterns = patterns('shop',
     (r'^wordstat_next/$', 'ajax.wordstat_next', {'vendor': None}),
     (r'^foursquare_next/$', 'ajax.foursquare_next'),
     (r'^foursquares_save/$', 'ajax.foursquares_save', {"shopobj": None}),
+    (r'^foursquares_redirect/$', 'views.foursquares_redirect')
 
 )
 

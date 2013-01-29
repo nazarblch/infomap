@@ -3,7 +3,7 @@ import os
 import difflib
 import re
 from itertools import ifilterfalse,permutations
-
+from stop_words import stop_words_arr, vendors
 
 from ya_func import suggestion, wordstat_search_also
 from transl import translit, find_substr_in_arr, check_lang
@@ -88,9 +88,14 @@ class Category_synonyms:
 
     def __init__(self, category):
         self.dbtable="cat"
-        self.bad_words = [unicode(word, "utf-8") for word in ['цена','дешевые', 'каталог','цены', 'продажа', 'куплю', 'купить', 'недорого', 'дешево', 'интернет магазин','бесплатно','продать', 'магазин']]
+        self.bad_words = [unicode(word, "utf-8") for word in stop_words_arr]
         self.otherwords = [unicode(word, "utf-8") for word in ['купить', 'цена', 'лучшие']]
-        #self.synonyms = self.syn_suggestion(category, self.bad_words)
+        sclon = set([])
+        for phr in self.bad_words:
+            sclon.update(all_declinations(phr))
+
+        self.bad_words = list(sclon) + vendors
+
         self.category_suggestion = []
         self.cur_depth = 1
         self.cur_phr_q = deque([category])

@@ -71,7 +71,6 @@ def index(request, sid = None):
 
 def add_syn_vendor_category(request, templ_dict, shopobj):
 
-	
 
     categories = shopobj.categories.all()
     vendors = shopobj.vendors.all()
@@ -239,12 +238,13 @@ def foursquares(request, templ_dict, shopobj):
     category = request.session['category']
 
 
-    Mg = cache.get('Mg')
+    #Mg = cache.get('Mg')
+    Mg = None
 
     if Mg is None:
         Mg = Mg_for_vendor_category(shopobj, category, vendor)
         Mg = wordstat_first_request(Mg, shopobj, category, vendor)['Mg']
-        cache.set('Mg', Mg, 1)
+        #cache.set('Mg', Mg, 1)
 
     foursquares_dict = {}
 
@@ -256,7 +256,9 @@ def foursquares(request, templ_dict, shopobj):
         foursquares_dict[str(gr_num)] = {}
 
         for patt_key in gr.get_patt_keys():
-            foursquares_dict[str(gr_num)][patt_key] = Foursquare(gr, gr_num, patt_key, model_syns)
+            fsqr = Foursquare(gr, gr_num, patt_key, model_syns)
+            if not fsqr.empty():
+                foursquares_dict[str(gr_num)][patt_key] = fsqr
 
     request.session["Mg"] = Mg
     templ_dict["Mg"]=Mg
@@ -269,8 +271,8 @@ def foursquares(request, templ_dict, shopobj):
 
     return render_to_response('shop/kw_from_foursquares.html', templ_dict)
 
-
-
+def foursquares_redirect(request):
+    return render_to_response('shop/redirect.html', {})
 
 
 

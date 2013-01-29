@@ -1,127 +1,35 @@
-from typecheck import *
 from math import fsum
 from copy import deepcopy
 
 
-
-
-def max_ctr(product):
-    return product["ctr"]/product["price"]
-
-def push_into_pack(products, price_names, fref_names, budget, goal_func = max_ctr):
-    separated_pr = []
-    res = []
-
-    if price_names.keys() != fref_names.keys():
-        raise IndexError("price_names should have the same keys as fref_names")
-
-    for pr_num,prod in enumerate(products):
-
-        for num,price_name in price_names.items():
-            pref = fref_names[num]
-
-            prod_part = {
-                "pr_num":pr_num,
-                "price":prod[price_name],
-                "price_name":price_name,
-                "ctr": prod[pref+"CTR"],
-                "clicks": prod[pref+"Clicks"],
-                "sum": prod[pref+"Clicks"]*prod[price_name],
-                "shows":prod["Shows"]
-            }
-
-
-            separated_pr.append(prod_part)
-
-
-    separated_pr = filter(lambda p: p["ctr"] > 0.5 ,separated_pr)
-
-    summa = 0.0
-
-    while summa <= budget and len(separated_pr) > 0:
-        max = 0
-        max_id = None
-
-        for pr_num,prod in enumerate(separated_pr):
-            t = goal_func(prod)
-            if t > max:
-                max = t
-                max_id = pr_num
-
-        try:
-            pr = separated_pr.pop(max_id)
-        except:
-            print max_id
-            print max
-            print separated_pr
-
-        summa += pr["sum"]
-        separated_pr = filter(lambda p: p["pr_num"] != pr["pr_num"] ,separated_pr)
-
-        products[pr["pr_num"]]["price_name"] = pr["price_name"]
-        products[pr["pr_num"]]["price_val"] = pr["price"]
-
-        res.append( products[pr["pr_num"]] )
-
-
-    return  summa, res
-
-
-
-def rank_products(products, price_names, fref_names, pos_weights):
-
-    def find_best_pr_phr(phrs, k):
-
-        phr_ranks = []
-
-        for phr_num,phr in enumerate(phrs):
-
-            rank = 0
-
-            for num,price_name in price_names.items():
-                pref = fref_names[num]
-                phr_part = {"pr_num":pr_num, "price":phr[price_name], "price_name":price_name,
-                             "ctr": phr[pref+"ctr"], "clicks": phr[pref+"clicks"], "sum": phr[pref+"sum"], "shows":phr["shows"] }
-
-                rank += phr_part['ctr']*pos_weights[price_name]
-
-            phr_ranks.append( (phr_num, phr, rank) )
-
-        phr_ranks = sorted(phr_ranks, key=lambda item: item[2])[:k]
-
-        return phr_ranks
-
-
-
-    for prod in products:
-        prod_popularity = 0
-
-        best_phrs = find_best_pr_phr(prod['phrs'], 4)
-
-
-
-
-
-
 class Item:
-    def __init__(self, weight, cost):
+    def __init__(self, weight, cost, ind = None):
+        self.ind = ind
         self.weight = weight
         self.cost = cost
 
     def __str__(self):
-        return '(' + str(self.weight) + ':' + str(self.cost) + ')'
+        res =  '('
+        if self.ind is not None:
+            res += str(self.ind) + "|"
+        res += str(self.weight) + ':' + str(self.cost) + ')'
+
+        return res
+
+class ItemGroup:
+    def __init__(self, it_arr):
+        self.items = it_arr
 
 
 class Solution:
 
-    @accepts(Self(), [Item])
     def __init__(self, items):
         self.items = items
 
         self.weight = fsum([item.weight for item in items])
         self.cost = fsum([item.cost for item in items])
 
-    @accepts(Self(), Item)
+
     def additem(self, item):
         new_S = deepcopy(self)
 
@@ -131,7 +39,7 @@ class Solution:
 
         return new_S
 
-    @accepts(Self(), Self())
+
     def __add__(self, other):           # self and other should not have equal items
         new_S = deepcopy(self)
         new_S.items += other.items
@@ -154,9 +62,21 @@ class Solution:
         return  res
 
 
+def add_solution_to_paretoSet(solAdd, pSet):
 
-@accepts([Solution], [Solution])
-def merge_item_sets(s1, s2): # merge two not empty solution lists
+    new_pSet = []
+
+    for s in pSet:
+
+        if s.weight <= solAdd.weight and s.cost > solAdd.cost:
+            return pSet
+
+        if not (solAdd.weight <= s.weight and s.cost > solAdd.cost):
+
+
+
+
+    def merge_item_sets(s1, s2): # merge two not empty solution lists
     i = j = 0
     res = []
     while i <= len(s1) or j <= len(s2):
@@ -182,17 +102,25 @@ def merge_item_sets(s1, s2): # merge two not empty solution lists
                 j += 1
     return res
 
+def is_group(itemOrGroup):
 
+    return isinstance(itemOrGroup, list) or isinstance(itemOrGroup, set)
 
-@accepts([Item], float)
 def KnapsackNemhauserUllman(items, B):
-    pareto = [Solution([])]  # pareto optimised solution
+    pareto = [Solution([])]
 
-    for item in items:
+    for itemOrGroup in items:
         news = []
         for solution in pareto:
-            if solution.weight + item.weight <= B:
-                news.append( solution.additem(item) )
+
+            if is_group(itemOrGroup):
+                for item in itemOrGroup:
+                    if solution.weight + item.weight <= B:
+                        news.append( solution.additem(item) )
+
+            else:
+                if solution.weight + itemOrGroup.weight <= B:
+                    news.append( solution.additem(itemOrGroup) )
 
         pareto = merge_item_sets(pareto, news)
 
@@ -202,12 +130,22 @@ def KnapsackNemhauserUllman(items, B):
 
 
 def test():
-    items = [Item(8,8.1), Item(9,10), Item(10,11) , Item(8,8), Item(8,8), Item(9,10), Item(10,11) , Item(8,8), Item(8,8), Item(9,10), Item(10,11) , Item(8,8), Item(8,8)]
+    items = [
+             [Item(8, 8.1, 1), Item(9,10, 1), Item(10,11, 1)] ,
+             [Item(8,8, 2), Item(8,8, 2)],
+             [Item(9,10, 3), Item(10,11, 3)],
+             Item(8,8, 4),
+             [Item(8,8, 5), Item(9,10, 5)],
+             Item(10,11, 6),
+             [Item(8,8, 7), Item(8,8, 7)],
+    ]
+
     sol, sol_count =  KnapsackNemhauserUllman(items, 35.0)
 
     print sol
     print sol_count
 
 
-
+if __name__ == "__main__":
+    test()
 

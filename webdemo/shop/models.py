@@ -255,6 +255,8 @@ class ShopInfo(models.Model):
             cat_vendors = cur_cat.vendors.all()
             vendors = sorted(set(shop_vendors) & set(cat_vendors), key=lambda obj: obj.id)
 
+            return cur_cat, vendors[0]
+
 
         after = False
         res_ven = None

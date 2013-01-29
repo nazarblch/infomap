@@ -7,7 +7,7 @@ from shop.models import  Products, Categories, Vendors
 
 from shop.xl import *
 from django.http import  HttpResponse, HttpResponseBadRequest
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render_to_response, render, redirect
 from yafunc import  wordstat
 from shop.groupModels import *
 from shop.groups import *

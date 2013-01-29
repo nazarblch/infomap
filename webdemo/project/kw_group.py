@@ -22,6 +22,9 @@ class node:
         self.forecast = {"price": 0, "clicks": 0, "sum": 0}
         self.profit = 0.0
 
+        self.profit_coef = 0.1
+        self.conversion = 0.05
+
 
     def add_link(self, obj_key):
 
@@ -33,7 +36,7 @@ class node:
         if  not self.forecast["clicks"]:
             return 0.0
 
-        return self.forecast["clicks"]/self.weight()
+        return self.forecast["clicks"] * self.conversion /self.weight()
 
 
     def profit_score(self):
@@ -43,8 +46,9 @@ class node:
 
         if not self.profit:
             self.profit = fsum([e.obj.price  for e in self.edges ]) / len(self.edges)
+            self.profit = self.profit * self.conversion * self.profit_coef - self.forecast["price"]
 
-        return (self.profit * self.forecast["clicks"]) / self.weight()
+        return self.profit * self.forecast["clicks"] / self.weight()
 
 
     def kw_score(self, goal_func):

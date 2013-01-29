@@ -117,16 +117,11 @@ def find_nearest_groups(Mg, phr, border):
         nearest_gr = Mg[maxscoreind]
 
         pattkey = str(sorted(maxscorepatt.values()))
-        if nearest_gr.kwpatt.has_key(pattkey): nearest_gr.kwpatt[pattkey][1] += friq
-        else: nearest_gr.kwpatt[pattkey] = [maxscorepatt, friq]
-
-        '''
-        for mod in nearest_gr.models:
-            modkwphr = mod.get_subphrathe(maxscorepatt, nearest_gr.pattern)
-            if len(modkwphr) > 0:
-                if mod.kwphr.has_key(" ".join(modkwphr)): mod.kwphr[" ".join(modkwphr)] += friq
-                else: mod.kwphr[" ".join(modkwphr)] = friq
-        '''
+        if nearest_gr.kwpatt.has_key(pattkey):
+            nearest_gr.kwpatt[pattkey][1] += friq
+        else:
+            nearest_gr.kwpatt[pattkey] = [maxscorepatt, friq]
+            nearest_gr.unchecked_patts.add(pattkey)
 
         return maxscoreind, wordsoutset
 

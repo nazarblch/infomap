@@ -1,7 +1,7 @@
 # Django settings for myproject project.
 import os
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 CORRECTION_URL = "http://namespaces.soaplite.com/perl"
@@ -130,7 +130,7 @@ ROOT_URLCONF = 'urls'
 
 PYMORPHY_DICTS = {
     'ru': {
-        'dir': os.path.join(os.path.abspath(os.path.dirname(__file__)), os.path.join(os.path.abspath(os.path.dirname(__file__)), 'media/dicts')),
+        'dir': os.path.join(os.path.abspath(os.path.dirname(__file__)), 'media/dicts'),
         'backend': 'cdb',
         'use_cache': True,
         },

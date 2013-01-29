@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import traceback
 from appcommon.dependency_injection import provides, requires, resource_registry
+from logger import yaLog
 import settings
 from ya_exeptions import YaTypeConvertError, YaEmptyRequestError
 import httplib, urllib2
@@ -70,28 +71,13 @@ class YaClient(Client):
         locale = Element('locale').setText('en')
         self.set_options(soapheaders=(login, token, appId, locale))
 
-    def print_hren(self):
-        print "hren"
 
 
-
-@provides('api')
-class APIProvider(object):
-    def __init__(self, api):
-        self.api = api
-
-    def __str__(self):
-        return 'Provider(%s)' % self.handle
-
-@requires('api')
-class APIUser(object):
-    def __init__(self, **kwargs):
-        pass
 
 
 api = YaClient()
 api.Token_Auth()
-pr1 = APIProvider(api)
+#pr1 = APIProvider(api)
 
 
 
@@ -99,7 +85,7 @@ pr1 = APIProvider(api)
 def directRequest(methodName, params, times=3):
 
     try:
-        api1 = resource_registry.values()[0].api
+        #api1 = resource_registry.values()[0].api
         result = api.service['APIPort'][methodName](params)
         return result
     except WebFault, err:
@@ -108,9 +94,10 @@ def directRequest(methodName, params, times=3):
             return directRequest(methodName, params, times-1)
         else:
             return err
-    except:
+    except Exception, e:
         err = sys.exc_info()[1]
-        return 'Other error: ' + str(err)
+        yaLog.exception(e)
+        return 'directRequest: Other error: ' + str(err)
 
 
 

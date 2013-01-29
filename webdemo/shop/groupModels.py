@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from itertools import product
 import re
 from math import fsum
 from shop.models import Product_synonyms, Products
 from project.models import Keyword
+import numpy as np
 
 
 class word:
@@ -116,61 +118,106 @@ class model:
                 ind = key
                 score = el_sizearr[key]
 
-        return key
+        return ind
 
+    def get_split_words(self, grpatt):
 
-    def checkphrase(self, phrase, grpatt=""):
-        if grpatt == "": grpatt = self.pattern
-        wordsin = []
-        wordsout = []
-        phrase_words = phrase.split()
-        #phrase_splited_words = [unicode(el).lower() for wd in phrase_words for el in word(wd).word_as_list ]
         self_splited_words = {}
-        el_size = {}
-        pos = 0
+        posToWordInd = {}
+        posToFraction = {}
 
-        for ind,obj in enumerate(self.words):
+        pos = 0
+        for ind, obj in enumerate(self.words):
             if obj.word == " ":
                 pos += len(grpatt[ind])
                 continue
             for el in obj.word_as_list:
                 el = unicode(el).lower()
                 self_splited_words[pos] = el
-                el_size[pos] = float(len(el))/len(obj.word)
-                pos +=1
+                posToWordInd[pos] = ind
+                posToFraction[pos] = 1.0 / len(obj.word_as_list)
+                pos += 1
+
+        return self_splited_words, posToWordInd, posToFraction
+
+
+    def find_subword_positions(self, phr_subWord, self_splited_words):
+
+        possible_positions = []
+
+        for ind, wd in self_splited_words.iteritems():
+            if wd == phr_subWord:
+                possible_positions.append(ind)
+
+        return possible_positions
+
+    def find_best_phrase_positions(self, subWordToPositions, posToWordInd, posToFraction):
+
+        wc_score = 100
+        fraction_score = 0
+        best_pos_arr = []
+
+        for pos_arr in product(*subWordToPositions.values()):
+            pos_arr_without_dash = filter(lambda el: el != '-', pos_arr)
+
+            if len(set(pos_arr_without_dash)) < len(pos_arr_without_dash):
+                continue
+
+            cur_wc = len(set(value for key, value in posToWordInd.iteritems() if key in pos_arr_without_dash))
+            fractions_sum = fsum(value for key, value in posToFraction.iteritems() if key in pos_arr_without_dash)
+
+            if cur_wc < wc_score or (cur_wc == wc_score and fraction_score < fractions_sum):
+                wc_score = cur_wc
+                fraction_score = fractions_sum
+                best_pos_arr = pos_arr
+
+        return best_pos_arr
+
+
+    def checkphrase(self, phrase, grpatt = ""):
+        if grpatt == "":
+            grpatt = self.pattern
+
+        wordsin = []
+        wordsout = []
+        phrase_words = phrase.split()
+
+        self_splited_words, posToWordInd, posToFraction = self.get_split_words(grpatt)
 
         modlen = len(self_splited_words)
 
         patt = {}
-        for wd_i,wd in enumerate(phrase_words):
-            self_splited_words_copy = self_splited_words.copy()
+        for wd_i, wd in enumerate(phrase_words):
+            phr_word = word(wd)
 
-            for el in word(wd).word_as_list:
-                el = unicode(el).lower()
+            for model_word in self.words:
+                if model_word.pattern == phr_word.pattern \
+                   and len(model_word.pattern) > 2 and len(wd) == len(model_word.word):
+                    phr_word = word(model_word.word)
+                    wd = model_word.word
+                    break
 
-                if el == "-":
-                    try:
-                        patt[wd_i].append(el)
-                    except:
-                        patt[wd_i] = [el]
+            subWordToPositions = {}
+            found = False
+            for phr_subWord_ind, phr_subWord in enumerate(phr_word.word_as_list):
 
-                if el in self_splited_words.values():
-                    '''найти наиболее близкое слово'''
-                    elpos = self.find_closest_word(el, self_splited_words, el_size)
-                    self_splited_words.pop(elpos)
-                    try:
-                        if el != "-": patt[wd_i].append(elpos)
-                    except:
-                        if el != "-": patt[wd_i] = [elpos]
-                else:
-                    if el != "-":
-                        wordsout.append(wd)
-                        try: del patt[wd_i]
-                        except: pass
-                        self_splited_words = self_splited_words_copy
-                        break
+                phr_subWord = unicode(phr_subWord).lower()
 
-            if patt.has_key(wd_i): wordsin.append(wd)
+                subWordToPositions[phr_subWord_ind] = self.find_subword_positions(phr_subWord, self_splited_words)
+
+                if len(subWordToPositions[phr_subWord_ind]) > 0 or phr_subWord == "-":
+                    found = True
+
+                if len(subWordToPositions[phr_subWord_ind]) == 0 and phr_subWord == "-":
+                    subWordToPositions[phr_subWord_ind] = [phr_subWord]
+
+            if not found: continue
+
+            bestPositions = self.find_best_phrase_positions(subWordToPositions, posToWordInd, posToFraction)
+
+            if len(bestPositions) > 0:
+                patt[wd_i] = bestPositions
+                wordsin.append(wd)
 
 
         l = 0.0
@@ -232,6 +279,7 @@ class ModelGroup:
         self.kwpatt = {}
         self.kwphr = []
         self.pospopularity = {}
+        self.unchecked_patts = set()
 
 
     def addmodel(self, mod):
@@ -356,7 +404,7 @@ class ModelGroup:
             if len(wordsoutset)>0: wordsoutset &= set(wordsout)
             else: wordsoutset = set(wordsout)
             #print intersect, patt
-            if intersect < 0.1: continue
+            if intersect < 0.2: continue
             for wpos,elposarr in patt.items():
                 elposarr = ','.join([str(it) for it in elposarr])
                 if not unitedpatt.has_key(wpos): unitedpatt[wpos] = {}
@@ -636,6 +684,7 @@ class Foursquare:
         keywords = {'m': [], 'vm': [], 'cm': [], 'cvm': [] }
 
         for mod_syn in self.patt_modsyns:
+            if len(mod_syn.name) == 0: continue
 
             product = mod_syn.product
             vendor = mod_syn.product.vendor
